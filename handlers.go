@@ -54,6 +54,7 @@ func pcHander(c *gin.Context) {
 			return
 		}
 		c.String(http.StatusOK, text)
+		return
 	case "URL", "文本":
 		// 先读取纯文本类型的数据
 		buf := bytes.NewBuffer(nil)
