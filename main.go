@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"pc-phone-conn/icons"
+	"pc-phone-conn-go/icons"
 )
 
 const (
