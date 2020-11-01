@@ -1,4 +1,4 @@
-# pc-phone-conn
+# pc-phone-conn-go
 
 ## 可在手机端向 PC 端发送文件、文本，互设剪贴板
 ## 此为 PC 服务端
