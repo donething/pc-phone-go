@@ -35,7 +35,6 @@ func index(c *gin.Context) {
 func pcHander(c *gin.Context) {
 	// 读取数据类型、数据内容
 	ctype := c.PostForm("type")
-	log.Printf("收到 '%s' 类型的数据\n", ctype)
 
 	file, header, err := c.Request.FormFile("content")
 	if err != nil && ctype != "getclip" {
@@ -64,6 +63,7 @@ func pcHander(c *gin.Context) {
 			return
 		}
 		text := buf.String()
+		log.Printf("收到 '%s' 类型的文本类数据：'%s'\n", ctype, text)
 
 		if ctype == "URL" {
 			// 链接
@@ -73,13 +73,13 @@ func pcHander(c *gin.Context) {
 				err = clipboard.WriteAll(text)
 			} else {
 				path, _ := filepath.Abs(filepath.Join(FileDir(), header.Filename))
-				log.Printf("收到 '%s' 类型的数据，保存到 %s\n", ctype, path)
+				log.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
 				err = c.SaveUploadedFile(header, path)
 			}
 		}
 	default:
 		path, _ := filepath.Abs(filepath.Join(FileDir(), header.Filename))
-		log.Printf("收到 '%s' 类型的数据，保存到 %s\n", ctype, path)
+		log.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
 		err = c.SaveUploadedFile(header, path)
 	}
 
