@@ -25,12 +25,10 @@ func init() {
 	var err error
 	logFile, err = dolog.LogToFile(dolog.LogName, os.O_CREATE|os.O_APPEND, dolog.LogFormat)
 	CheckErr(err)
+	go systray.Run(onReady, nil)
 }
 func main() {
 	defer logFile.Close()
-	go func() {
-		systray.Run(onReady, nil)
-	}()
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
