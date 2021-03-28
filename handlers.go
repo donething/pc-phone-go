@@ -4,14 +4,18 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/atotto/clipboard"
+	"github.com/donething/utils-go/dofile"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/browser"
 	"github.com/skip2/go-qrcode"
 	"io"
 	"log"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 // 首页
@@ -69,16 +73,18 @@ func pcHander(c *gin.Context) {
 			// 链接
 			err = browser.OpenURL(text)
 		} else if ctype == "文本" {
-			if header.Size <= 512 {
+			if header == nil || header.Size <= 512 {
 				err = clipboard.WriteAll(text)
 			} else {
-				path, _ := filepath.Abs(filepath.Join(FileDir(), header.Filename))
+				filename := getFilename(header)
+				path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
 				log.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
 				err = c.SaveUploadedFile(header, path)
 			}
 		}
 	default:
-		path, _ := filepath.Abs(filepath.Join(FileDir(), header.Filename))
+		filename := getFilename(header)
+		path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
 		log.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
 		err = c.SaveUploadedFile(header, path)
 	}
@@ -92,4 +98,15 @@ func pcHander(c *gin.Context) {
 
 	// 正常完成
 	c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作完成", ctype))
+}
+
+// 从请求头中获取文件名或根据当前时间生成文件名
+func getFilename(header *multipart.FileHeader) string {
+	filename := ""
+	if header == nil || strings.TrimSpace(header.Filename) == "" {
+		filename = fmt.Sprintf("pc-phone-conn-%d", time.Now().UnixNano())
+	} else {
+		filename = header.Filename
+	}
+	return filename
 }
