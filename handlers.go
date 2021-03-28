@@ -48,8 +48,11 @@ func pcHander(c *gin.Context) {
 		return
 	}
 
+	// 返回给手机端显示的额外的信息（可空）
+	extraInfo := ""
 	// 根据数据类型分别处理
 	switch ctype {
+	// 获取 PC 端的剪贴板到手机
 	case "getclip":
 		text, err := clipboard.ReadAll()
 		if err != nil {
@@ -59,6 +62,7 @@ func pcHander(c *gin.Context) {
 		}
 		c.String(http.StatusOK, text)
 		return
+	// 从手机分享给 PC 的链接、文本
 	case "URL", "文本":
 		// 先读取纯文本类型的数据
 		buf := bytes.NewBuffer(nil)
@@ -78,10 +82,12 @@ func pcHander(c *gin.Context) {
 			} else {
 				filename := getFilename(header)
 				path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
-				log.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
+				log.Printf("收到 '%s' 类型的比较多的数据，保存到文件 '%s'\n", ctype, path)
+				extraInfo = "，已作为文件保存"
 				err = c.SaveUploadedFile(header, path)
 			}
 		}
+	// 从手机分享给 PC 的文件
 	default:
 		filename := getFilename(header)
 		path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
@@ -97,7 +103,7 @@ func pcHander(c *gin.Context) {
 	}
 
 	// 正常完成
-	c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作完成", ctype))
+	c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作完成%s", ctype, extraInfo))
 }
 
 // 从请求头中获取文件名或根据当前时间生成文件名
