@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/atotto/clipboard v0.1.2
-	github.com/donething/utils-go v0.0.0-20210328093103-11d18601e58f // indirect
+	github.com/donething/utils-go v0.0.2 // indirect
 	github.com/getlantern/systray v1.1.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4

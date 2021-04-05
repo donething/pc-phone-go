@@ -9,11 +9,11 @@ import (
 	"github.com/pkg/browser"
 	"github.com/skip2/go-qrcode"
 	"io"
-	"log"
 	"mime/multipart"
 	"net"
 	"net/http"
 	"path/filepath"
+	"pc-phone-conn-go/logger"
 	"strings"
 	"time"
 )
@@ -39,11 +39,11 @@ func index(c *gin.Context) {
 func pcHander(c *gin.Context) {
 	// 读取数据类型、数据内容
 	ctype := c.PostForm("type")
-	log.Printf("收到 '%s' 类型的文本数据", ctype)
+	logger.Info.Printf("收到 '%s' 类型的文本数据", ctype)
 
 	file, header, err := c.Request.FormFile("content")
 	if err != nil && ctype != "getclip" {
-		log.Printf("提取数据出错：%v\n", err)
+		logger.Error.Printf("提取数据出错：%v\n", err)
 		c.String(http.StatusOK, "提取数据出错，传递的数据可能为空："+err.Error())
 		return
 	}
@@ -56,7 +56,7 @@ func pcHander(c *gin.Context) {
 	case "getclip":
 		text, err := clipboard.ReadAll()
 		if err != nil {
-			log.Printf("读取剪贴板出错：%v\n", err)
+			logger.Error.Printf("读取剪贴板出错：%v\n", err)
 			c.String(http.StatusOK, "读取剪贴板出错："+err.Error())
 			return
 		}
@@ -67,7 +67,7 @@ func pcHander(c *gin.Context) {
 		// 先读取纯文本类型的数据
 		buf := bytes.NewBuffer(nil)
 		if _, err := io.Copy(buf, file); err != nil {
-			log.Printf("读取纯文本内容出错：%v\n", err)
+			logger.Error.Printf("读取纯文本内容出错：%v\n", err)
 			c.String(http.StatusOK, "读取纯文本内容出错："+err.Error())
 			return
 		}
@@ -82,7 +82,7 @@ func pcHander(c *gin.Context) {
 			} else {
 				filename := getFilename(header)
 				path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
-				log.Printf("收到 '%s' 类型的比较多的数据，保存到文件 '%s'\n", ctype, path)
+				logger.Info.Printf("收到 '%s' 类型的比较多的数据，保存到文件 '%s'\n", ctype, path)
 				extraInfo = "，已作为文件保存"
 				err = c.SaveUploadedFile(header, path)
 			}
@@ -91,13 +91,13 @@ func pcHander(c *gin.Context) {
 	default:
 		filename := getFilename(header)
 		path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
-		log.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
+		logger.Info.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
 		err = c.SaveUploadedFile(header, path)
 	}
 
 	// 操作有错误
 	if err != nil {
-		log.Printf("执行 '%s' 类型的操作时出错：%v\n", ctype, err)
+		logger.Error.Printf("执行 '%s' 类型的操作时出错：%v\n", ctype, err)
 		c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作时出错：%v", ctype, err))
 		return
 	}
@@ -106,13 +106,11 @@ func pcHander(c *gin.Context) {
 	c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作完成%s", ctype, extraInfo))
 }
 
-// 从请求头中获取文件名或根据当前时间生成文件名
+// 根据当前时间、请求头中的文件名 生成保存文件的文件名
 func getFilename(header *multipart.FileHeader) string {
-	filename := ""
-	if header == nil || strings.TrimSpace(header.Filename) == "" {
-		filename = fmt.Sprintf("pc-phone-conn-%d", time.Now().UnixNano())
-	} else {
-		filename = header.Filename
+	filename := fmt.Sprintf("pc-phone-conn-%d", time.Now().UnixNano())
+	if header != nil && strings.TrimSpace(header.Filename) != "" {
+		filename += "_" + header.Filename
 	}
 	return filename
 }

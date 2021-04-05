@@ -2,13 +2,13 @@ package main
 
 import (
 	"github.com/donething/utils-go/dofile"
-	"github.com/donething/utils-go/dolog"
 	"github.com/getlantern/systray"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"pc-phone-conn-go/icons"
+	"pc-phone-conn-go/logger"
 )
 
 const (
@@ -17,19 +17,12 @@ const (
 	path = "topc"
 )
 
-var (
-	logFile *os.File
-)
-
 func init() {
 	var err error
-	logFile, err = dolog.LogToFile(dolog.LogName, os.O_CREATE|os.O_APPEND, dolog.LogFormat)
 	CheckErr(err)
 	go systray.Run(onReady, nil)
 }
 func main() {
-	defer logFile.Close()
-
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
@@ -42,14 +35,14 @@ func main() {
 	})
 	router.POST("/"+path, pcHander)
 
-	log.Println("开始本地服务：http://127.0.0.1:" + port)
-	log.Println("本地服务地址：http://127.0.0.1:" + port + "/" + path)
+	logger.Info.Println("开始本地服务：http://127.0.0.1:" + port)
+	logger.Info.Println("本地服务地址：http://127.0.0.1:" + port + "/" + path)
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
 func CheckErr(err error) {
 	if err != nil {
-		panic(err)
+		logger.Error.Panicln(err)
 	}
 }
 
@@ -66,13 +59,13 @@ func onReady() {
 	for {
 		select {
 		case <-mOpenLog.ClickedCh:
-			err := dofile.OpenAs(dolog.LogName)
+			err := dofile.OpenAs(logger.LogName)
 			if err != nil {
-				log.Printf("打开日志文件(%s)出错：%s\n", dolog.LogName, err)
+				logger.Error.Printf("打开日志文件(%s)出错：%s\n", logger.LogName, err)
 			}
 		case <-mQuit.ClickedCh:
 			// 退出程序
-			log.Println("退出程序")
+			logger.Info.Println("退出程序")
 			systray.Quit()
 			os.Exit(0)
 		}
