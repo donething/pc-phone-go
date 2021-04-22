@@ -18,6 +18,9 @@ import (
 	"time"
 )
 
+// 手机端发送的文本数据小于此值才复制到剪贴板，大于则保存到文件
+const clipMAXSIZE = 512
+
 // 首页
 func index(c *gin.Context) {
 	conn, err := net.Dial("ip:icmp", "google.com")
@@ -36,24 +39,19 @@ func index(c *gin.Context) {
 }
 
 // PC 端数据处理
+// POST 参数：
+// type: 操作的类型
+//   可为"getclip"：手机端获取PC端的剪贴板数据
+//   可为"URL"、"文本"：手机端发送数据到PC端
+// content: 手机端传输的数据
+//   可为文本、文件
 func pcHander(c *gin.Context) {
 	// 读取数据类型、数据内容
 	ctype := c.PostForm("type")
-	logger.Info.Printf("收到 '%s' 类型的文本数据", ctype)
+	logger.Info.Printf("收到 '%s' 类型的请求或数据", ctype)
 
-	file, header, err := c.Request.FormFile("content")
-	if err != nil && ctype != "getclip" {
-		logger.Error.Printf("提取数据出错：%v\n", err)
-		c.String(http.StatusOK, "提取数据出错，传递的数据可能为空："+err.Error())
-		return
-	}
-
-	// 返回给手机端显示的额外的信息（可空）
-	extraInfo := ""
-	// 根据数据类型分别处理
-	switch ctype {
-	// 获取 PC 端的剪贴板到手机
-	case "getclip":
+	// 手机端获取PC端的剪贴板数据的操作
+	if ctype == "getclip" {
 		text, err := clipboard.ReadAll()
 		if err != nil {
 			logger.Error.Printf("读取剪贴板出错：%v\n", err)
@@ -62,33 +60,38 @@ func pcHander(c *gin.Context) {
 		}
 		c.String(http.StatusOK, text)
 		return
-	// 从手机分享给 PC 的链接、文本
-	case "URL", "文本":
-		// 先读取纯文本类型的数据
-		buf := bytes.NewBuffer(nil)
-		if _, err := io.Copy(buf, file); err != nil {
-			logger.Error.Printf("读取纯文本内容出错：%v\n", err)
-			c.String(http.StatusOK, "读取纯文本内容出错："+err.Error())
+	}
+
+	// 手机端发送数据到PC端的操作
+	// 读取传输的数据
+	file, header, err := c.Request.FormFile("content")
+	if err != nil {
+		logger.Error.Printf("PC端接收数据出错：%v\n", err)
+		c.String(http.StatusOK, "PC端接收数据出错："+err.Error())
+		return
+	}
+	//logger.Error.Printf("PC端接收数据大小：%d 字节\n", header.Size)
+
+	// 返回给手机端显示的额外的信息（可空）
+	extraInfo := ""
+	// 根据数据类型分别处理
+	if ctype == "URL" {
+		url, err := readText(file)
+		if err != nil {
+			logger.Error.Printf("读取URL数据出错：%v\n", err)
+			c.String(http.StatusOK, "读取URL数据出错："+err.Error())
 			return
 		}
-		text := buf.String()
-
-		if ctype == "URL" {
-			// 链接
-			err = browser.OpenURL(text)
-		} else if ctype == "文本" {
-			if header == nil || header.Size <= 512 {
-				err = clipboard.WriteAll(text)
-			} else {
-				filename := getFilename(header)
-				path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
-				logger.Info.Printf("收到 '%s' 类型的比较多的数据，保存到文件 '%s'\n", ctype, path)
-				extraInfo = "，已作为文件保存"
-				err = c.SaveUploadedFile(header, path)
-			}
+		err = browser.OpenURL(url)
+	} else if ctype == "文本" && header.Size <= clipMAXSIZE {
+		text, err := readText(file)
+		if err != nil {
+			logger.Error.Printf("读取文本数据出错：%v\n", err)
+			c.String(http.StatusOK, "读取文本数据出错："+err.Error())
+			return
 		}
-	// 从手机分享给 PC 的文件
-	default:
+		err = clipboard.WriteAll(text)
+	} else {
 		filename := getFilename(header)
 		path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
 		logger.Info.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
@@ -103,14 +106,24 @@ func pcHander(c *gin.Context) {
 	}
 
 	// 正常完成
+	if ctype == "文本" && header.Size > clipMAXSIZE {
+		extraInfo = "，已作为文件保存"
+	}
 	c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作完成%s", ctype, extraInfo))
 }
 
 // 根据当前时间、请求头中的文件名 生成保存文件的文件名
 func getFilename(header *multipart.FileHeader) string {
-	filename := fmt.Sprintf("pc-phone-conn-%d", time.Now().UnixNano())
+	filename := fmt.Sprintf("PPC-%d", time.Now().Unix())
 	if header != nil && strings.TrimSpace(header.Filename) != "" {
 		filename += "_" + header.Filename
 	}
 	return filename
+}
+
+// 读取流的文本数据
+func readText(file multipart.File) (string, error) {
+	buf := bytes.NewBuffer(nil)
+	_, err := io.Copy(buf, file)
+	return buf.String(), err
 }
