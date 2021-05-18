@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	// 端口和路径：http://192.168.1.52:8899/topc
+	// 端口和路径：http://host:8899/topc
 	port = "8899"
 	path = "topc"
 )
@@ -49,8 +49,8 @@ func CheckErr(err error) {
 // 显示systray托盘
 func onReady() {
 	systray.SetIcon(icons.Tray)
-	systray.SetTitle("手机和 PC 传递数据")
-	systray.SetTooltip("手机和 PC 传递数据")
+	systray.SetTitle("手机与 PC 传递数据")
+	systray.SetTooltip("手机与 PC 传递数据")
 
 	mOpenLog := systray.AddMenuItem("打开日志", "打开日志文件")
 	systray.AddSeparator()

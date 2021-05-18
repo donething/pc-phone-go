@@ -1,3 +1,5 @@
+// 手机与 PC 同步数据
+// 功能包括 同步剪贴板、获取手机分到来的文本、文件
 package main
 
 import (
@@ -12,8 +14,10 @@ import (
 	"mime/multipart"
 	"net"
 	"net/http"
+	"os/exec"
 	"path/filepath"
 	"pc-phone-conn-go/logger"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -21,7 +25,7 @@ import (
 // 手机端发送的文本数据小于此值才复制到剪贴板，大于则保存到文件
 const clipMAXSIZE = 512
 
-// 首页
+// 首页，显示二维码
 func index(c *gin.Context) {
 	conn, err := net.Dial("ip:icmp", "google.com")
 	CheckErr(err)
@@ -40,18 +44,20 @@ func index(c *gin.Context) {
 
 // PC 端数据处理
 // POST 参数：
-// type: 操作的类型
-//   可为"getclip"：手机端获取PC端的剪贴板数据
-//   可为"URL"、"文本"：手机端发送数据到PC端
-// content: 手机端传输的数据
-//   可为文本、文件
+// op: 操作的类型
+//   为"getclip"：手机获取 PC 剪贴板数据
+//   为"shutdown"：关闭 PC
+//   为"shutdown_cancel"：取消关闭 PC
+//   可为空：当手机发送数据到 PC 时，不需该参数
+// data: 手机传给 PC 的数据
+//   可为文本、文件等，可空
 func pcHander(c *gin.Context) {
-	// 读取数据类型、数据内容
-	ctype := c.PostForm("type")
-	logger.Info.Printf("收到 '%s' 类型的请求或数据", ctype)
+	// 读取请求中的参数：操作、数据
+	op := c.PostForm("op")
+	logger.Info.Printf("收到操作'%s'\n", op)
 
 	// 手机端获取PC端的剪贴板数据的操作
-	if ctype == "getclip" {
+	if op == "getclip" {
 		text, err := clipboard.ReadAll()
 		if err != nil {
 			logger.Error.Printf("读取剪贴板出错：%v\n", err)
@@ -62,54 +68,75 @@ func pcHander(c *gin.Context) {
 		return
 	}
 
-	// 手机端发送数据到PC端的操作
+	// 关闭 PC、取消关闭
+	if op == "shutdown" || op == "shutdown_cancel" {
+		var args []string
+		var tips string
+		if op == "shutdown" {
+			args = []string{"-s", "-t", "60"}
+			tips = "一分钟后将关闭 PC"
+		} else if op == "shutdown_cancel" {
+			args = []string{"-a"}
+			tips = "取消关闭 PC"
+		}
+
+		cmd := exec.Command("shutdown", args...)
+		_, err := cmd.CombinedOutput()
+		if err != nil {
+			logger.Error.Printf("执行(取消)关机命令时出错：%v\n", err)
+			c.String(http.StatusOK, "执行(取消)关机命令时出错："+err.Error())
+			return
+		}
+		logger.Info.Printf("已执行命令：%s\n", tips)
+		c.String(http.StatusOK, "已执行命令："+tips)
+		return
+	}
+
+	// 手机端发送到PC端的数据
 	// 读取传输的数据
-	file, header, err := c.Request.FormFile("content")
+	file, header, err := c.Request.FormFile("data")
 	if err != nil {
 		logger.Error.Printf("PC端接收数据出错：%v\n", err)
 		c.String(http.StatusOK, "PC端接收数据出错："+err.Error())
 		return
 	}
-	//logger.Error.Printf("PC端接收数据大小：%d 字节\n", header.Size)
-
-	// 返回给手机端显示的额外的信息（可空）
-	extraInfo := ""
-	// 根据数据类型分别处理
-	if ctype == "URL" {
-		url, err := readText(file)
-		if err != nil {
-			logger.Error.Printf("读取URL数据出错：%v\n", err)
-			c.String(http.StatusOK, "读取URL数据出错："+err.Error())
-			return
-		}
-		err = browser.OpenURL(url)
-	} else if ctype == "文本" && header.Size <= clipMAXSIZE {
-		text, err := readText(file)
+	// logger.Error.Printf("PC端接收数据大小：%d 字节\n", header.Size)
+	// 返回给手机端以供显示的信息
+	feedback := ""
+	// 小文本直接复制到剪贴板（为链接时自动用浏览器打开），大文本则保存到文件中
+	if header.Size <= clipMAXSIZE {
+		text, err := readStreamText(file)
 		if err != nil {
 			logger.Error.Printf("读取文本数据出错：%v\n", err)
 			c.String(http.StatusOK, "读取文本数据出错："+err.Error())
 			return
 		}
-		err = clipboard.WriteAll(text)
+		// 识别网址，当去除首尾空格后为"https?://..."的字符串时，自动用浏览器打开
+		urlReg := regexp.MustCompile(`^https?://\S+$`)
+		if urlReg.MatchString(strings.TrimSpace(text)) {
+			err = browser.OpenURL(strings.TrimSpace(text))
+			feedback = "收到网址，已用浏览器打开"
+		} else {
+			err = clipboard.WriteAll(text)
+			feedback = "收到短文本，已复制到剪贴板"
+		}
 	} else {
 		filename := getFilename(header)
 		path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
-		logger.Info.Printf("收到 '%s' 类型的数据，保存到 '%s'\n", ctype, path)
+		logger.Info.Printf("收到大文件，将保存到：'%s'\n", op, path)
 		err = c.SaveUploadedFile(header, path)
+		feedback = "收到大文本或文件，已作为文件保存"
 	}
 
 	// 操作有错误
 	if err != nil {
-		logger.Error.Printf("执行 '%s' 类型的操作时出错：%v\n", ctype, err)
-		c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作时出错：%v", ctype, err))
+		logger.Error.Printf("执行操作'%s'时出错：%v\n", op, err)
+		c.String(http.StatusOK, fmt.Sprintf("执行操作'%s'时出错：%v", op, err))
 		return
 	}
 
-	// 正常完成
-	if ctype == "文本" && header.Size > clipMAXSIZE {
-		extraInfo = "，已作为文件保存"
-	}
-	c.String(http.StatusOK, fmt.Sprintf("执行 '%s' 类型的操作完成%s", ctype, extraInfo))
+	// 返回结果以便显示
+	c.String(http.StatusOK, fmt.Sprintf("%s", feedback))
 }
 
 // 根据当前时间、请求头中的文件名 生成保存文件的文件名
@@ -122,7 +149,7 @@ func getFilename(header *multipart.FileHeader) string {
 }
 
 // 读取流的文本数据
-func readText(file multipart.File) (string, error) {
+func readStreamText(file multipart.File) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	_, err := io.Copy(buf, file)
 	return buf.String(), err
