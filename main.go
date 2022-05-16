@@ -9,6 +9,7 @@ import (
 	"os"
 	"pc-phone-conn-go/icons"
 	"pc-phone-conn-go/logger"
+	"runtime"
 )
 
 const (
@@ -18,10 +19,14 @@ const (
 )
 
 func init() {
-	var err error
-	CheckErr(err)
-	go systray.Run(onReady, nil)
+	// 显示托盘
+	go func() {
+		runtime.LockOSThread()
+		systray.Run(onReady, nil)
+		runtime.UnlockOSThread()
+	}()
 }
+
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
