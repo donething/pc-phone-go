@@ -31,8 +31,7 @@ func index(c *gin.Context) {
 	CheckErr(err)
 	localIP := conn.LocalAddr().String()
 
-	qr, err := qrcode.New(fmt.Sprintf("http://%s:%s/%s", localIP, port, path),
-		qrcode.Medium)
+	qr, err := qrcode.New(fmt.Sprintf("http://%s:%s", localIP, port), qrcode.Medium)
 	CheckErr(err)
 	png, err := qr.PNG(256)
 	CheckErr(err)
@@ -45,13 +44,16 @@ func index(c *gin.Context) {
 // PC 端数据处理
 // POST 参数：
 // op: 操作的类型
-//   为"getclip"：手机获取 PC 剪贴板数据
-//   为"shutdown"：关闭 PC
-//   为"shutdown_cancel"：取消关闭 PC
-//   可为空：当手机发送数据到 PC 时，不需该参数
+//
+//	为"getclip"：手机获取 PC 剪贴板数据
+//	为"shutdown"：关闭 PC
+//	为"shutdown_cancel"：取消关闭 PC
+//	可为空：当手机发送数据到 PC 时，不需该参数
+//
 // data: 手机传给 PC 的数据
-//   可为文本、文件等，可空
-func pcHander(c *gin.Context) {
+//
+//	可为文本、文件等，可空
+func handerClip(c *gin.Context) {
 	// 读取请求中的参数：操作、数据
 	op := c.PostForm("op")
 	logger.Info.Printf("收到操作'%s'\n", op)
