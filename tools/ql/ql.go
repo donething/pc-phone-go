@@ -193,15 +193,13 @@ func StartCommCronsCall() (int, error) {
 	// 获取 Token
 	headers, err := getTokenHeaders()
 	if err != nil {
-		logger.Error.Printf("获取 青龙 Token Headers 出错：%s\n", err)
-		return 0, err
+		return 0, fmt.Errorf("获取青龙 Token Headers 出错：%w", err)
 	}
 
 	// 获取任务
 	crons, err := getAllCrons(headers)
 	if err != nil {
-		logger.Error.Printf("获取所有定时任务出错：%s\n", err)
-		return 0, err
+		return 0, fmt.Errorf("获取所有定时任务出错：%w", err)
 	}
 
 	// 过滤任务，排除置顶、禁用的任务
@@ -217,47 +215,40 @@ func StartCommCronsCall() (int, error) {
 	// 发送请求，执行定时任务
 	putData, err := json.Marshal(ids)
 	if err != nil {
-		logger.Error.Printf("执行定时任务时出错：%s\n", err)
-		return 0, err
+		return 0, fmt.Errorf("执行定时任务时出错：%w", err)
 	}
 
 	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/open/crons/run", host),
 		bytes.NewReader(putData))
 	if err != nil {
-		logger.Error.Printf("创建执行定时任务时出错的请求时出错：%s\n", err)
-		return 0, err
+		return 0, fmt.Errorf("创建网络请求出错：%w", err)
 	}
 
 	// 注意请求头中的表单类型
 	headers["Content-Type"] = "application/json"
 	resp, err := client.Exec(req, headers)
 	if err != nil {
-		logger.Error.Printf("发送执行定时任务的请求时出错：%s\n", err)
-		return 0, err
+		return 0, fmt.Errorf("网络错误：%w", err)
 	}
 	defer resp.Body.Close()
 
 	bs, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Error.Printf("读取执行定时任务的响应时出错：%s\n", err)
-		return 0, err
+		return 0, fmt.Errorf("读取响应内容出错：%w", err)
 	}
 
 	// 解析响应
 	var basicResp BasicResp
 	err = json.Unmarshal(bs, &basicResp)
 	if err != nil {
-		logger.Error.Printf("解析执行定时任务的响应时出错：%s ==> '%s'\n", err, string(bs))
-		return 0, err
+		return 0, fmt.Errorf("解析JSON文本出错：%w ==> '%s'", err, string(bs))
 	}
 
 	// 没有获取到正确内容
 	if basicResp.Code != 200 {
-		logger.Error.Printf("执行定时任务的响应代码有误：%s\n", string(bs))
-		return 0, fmt.Errorf("执行定时任务的响应代码有误：%s", string(bs))
+		return 0, fmt.Errorf("状态响应码异常：'%s'", string(bs))
 	}
 
-	logger.Info.Printf("已成功发送执行定时任务的请求，共计 %d 个任务\n", len(ids))
 	return len(ids), nil
 }
 
@@ -265,20 +256,19 @@ func StartCommCronsCall() (int, error) {
 func getAllCrons(headers map[string]string) ([]Cron, error) {
 	bs, err := client.Get(fmt.Sprintf("%s/open/crons", host), headers)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("网络错误：%w", err)
 	}
 
 	// 解析响应
 	var cronsResp GetCronsResp
 	err = json.Unmarshal(bs, &cronsResp)
 	if err != nil {
-		logger.Error.Printf("解析所有定时任务出错：%s\n", string(bs))
-		return nil, err
+		return nil, fmt.Errorf("解析JSON文本出错：%w ==> '%s'", err, string(bs))
 	}
 
 	// 没有获取到正确内容
 	if cronsResp.Code != 200 {
-		return nil, fmt.Errorf("获取所有定时任务出错：%s", string(bs))
+		return nil, fmt.Errorf("状态响应码异常：'%s'", string(bs))
 	}
 
 	// 返回符合要求的定时任务
@@ -296,19 +286,19 @@ func getTokenHeaders() (map[string]string, error) {
 	bs, err := client.Get(fmt.Sprintf("%s/open/auth/token?client_id=%s&client_secret=%s",
 		host, conf.Conf.QLPanel.ClientID, conf.Conf.QLPanel.ClientSecret), nil)
 	if err != nil {
-		return nil, fmt.Errorf("获取 Token 的请求错误：%w", err)
+		return nil, fmt.Errorf("网络错误：%w", err)
 	}
 
 	// 解析响应
 	var tokenResp TokenResp
 	err = json.Unmarshal(bs, &tokenResp)
 	if err != nil {
-		return nil, fmt.Errorf("解析获取 Token 的响应时出错：%w", err)
+		return nil, fmt.Errorf("解析JSON文本出错：%w ==> '%s'", err, string(bs))
 	}
 
 	// 没有获取到正确内容
 	if tokenResp.Code != 200 {
-		return nil, fmt.Errorf("获取 Token 出错：%s", string(bs))
+		return nil, fmt.Errorf("状态响应码异常：'%s'", string(bs))
 	}
 
 	headers := map[string]string{"Authorization": fmt.Sprintf("Bearer %s", tokenResp.Data.Token),

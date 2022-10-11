@@ -26,12 +26,11 @@ func init() {
 		t := time.NewTimer(3 * time.Minute)
 		<-t.C
 
-		num, err := ql.StartCommCronsCall()
+		_, err := ql.StartCommCronsCall()
 		if err != nil {
 			logger.Error.Printf("执行定时任务时出错：%s\n", err)
 			return
 		}
-		logger.Info.Printf("已发送执行定时任务的请求，共计 %d 个任务\n", num)
 	}()
 
 	// 显示托盘
@@ -90,12 +89,11 @@ func onReady() {
 
 			// 运行青龙脚本
 		case <-mMatchQL.ClickedCh:
-			num, err := ql.StartCommCronsCall()
+			_, err := ql.StartCommCronsCall()
 			if err != nil {
 				logger.Error.Printf("执行定时任务时出错：%s\n", err)
 				return
 			}
-			logger.Info.Printf("已发送执行定时任务的请求，共计 %d 个任务\n", num)
 
 		case <-mQuit.ClickedCh:
 			// 退出程序
