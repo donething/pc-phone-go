@@ -21,7 +21,7 @@ func init() {
 		err := Client.SetProxy(proxy)
 		if err != nil {
 			logger.Error.Println("下载发送图片出错：设置 HTTP 代理时出错：", err)
-			notify.WXPushCard("VPS 下载发送图片出错",
+			notify.WXPushCard("发送图片出错",
 				fmt.Sprintf("设置 HTTP 代理时出错：%s", err.Error()), "", "")
 			return
 		}

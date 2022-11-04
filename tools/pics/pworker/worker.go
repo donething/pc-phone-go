@@ -81,7 +81,7 @@ func (w *PWorkers) work(id int) {
 			err = totg.Send(task)
 		default:
 			logger.Error.Printf("[Worker] 未知的 Handler：'%s'\n", id, Conf.Pics.Handler)
-			notify.WXPushCard("VPS 下载发送图片出错",
+			notify.WXPushCard("发送图片出错",
 				fmt.Sprintf("未知的 Handler：'%s'", Conf.Pics.Handler), "", "")
 			return
 		}
@@ -102,7 +102,7 @@ func (w *PWorkers) work(id int) {
 				if errSet != nil {
 					logger.Error.Printf("[Worker][%s] 保存跳过下载的图集'%s'到数据库时出错：%s\n",
 						task.Plat, task.ID, errSet)
-					notify.WXPushCard("VPS 下载发送图片出错",
+					notify.WXPushCard("发送图片出错",
 						fmt.Sprintf("保存跳过下载的图集到数据库出错：%s", errSet), "", "")
 					continue
 				}
@@ -120,7 +120,7 @@ func (w *PWorkers) work(id int) {
 				if errSet != nil {
 					logger.Error.Printf("[Worker][%s] 保存下载失败的图集'%s'到数据库时出错：%s\n",
 						task.Plat, task.ID, errSet)
-					notify.WXPushCard("VPS 下载发送图片出错",
+					notify.WXPushCard("发送图片出错",
 						fmt.Sprintf("保存下载失败的图集到数据库出错：%s", errSet), "", "")
 				}
 			}
@@ -145,7 +145,7 @@ func delLog(task pcomm.Album, dbkey string) {
 		if err != nil {
 			logger.Error.Printf("[Worker][%s] 删除数据库中图集'%s'的下载失败记录时出错：%s\n",
 				task.Plat, task.ID, err)
-			notify.WXPushCard("VPS 下载发送图片出错",
+			notify.WXPushCard("发送图片出错",
 				fmt.Sprintf("删除数据库中图集下载失败的记录时出错：%s", err), "", "")
 		}
 	}

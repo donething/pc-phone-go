@@ -33,7 +33,7 @@ func Donwload(c *gin.Context) {
 	err := c.BindJSON(&albums)
 	if err != nil {
 		logger.Error.Printf("下载发送图片出错：绑定 JSON 数据出错：%s\n", err)
-		push.WXPushCard("VPS 下载发送图片出错",
+		push.WXPushCard("发送图片出错",
 			fmt.Sprintf("绑定下载信息参数出错：%s", err), "", "")
 		c.JSON(http.StatusOK, entity.Rest{Code: 5000, Msg: fmt.Sprintf("绑定 JSON 数据出错：%s", err)})
 		return
@@ -43,7 +43,7 @@ func Donwload(c *gin.Context) {
 		err = start(albums)
 		if err != nil {
 			logger.Error.Printf("%s", err)
-			push.WXPushCard("VPS 下载发送图片出错", err.Error(), "", "")
+			push.WXPushCard("发送图片出错", err.Error(), "", "")
 		}
 	}()
 
@@ -70,7 +70,7 @@ func Retry(c *gin.Context) {
 		err = start(albums)
 		if err != nil {
 			logger.Error.Printf("%s", err)
-			push.WXPushCard("VPS 下载发送图片出错", err.Error(), "", "")
+			push.WXPushCard("发送图片出错", err.Error(), "", "")
 		}
 	}()
 
