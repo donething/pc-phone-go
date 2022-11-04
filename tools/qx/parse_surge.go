@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"pc-phone-conn-go/conf"
 	"pc-phone-conn-go/entity"
-	"pc-phone-conn-go/logger"
+	"pc-phone-conn-go/funcs/logger"
 	"strings"
 	"time"
 )
@@ -16,11 +16,11 @@ import (
 // ParseSurge 解析 surge 分流规则
 func ParseSurge(c *gin.Context) {
 	var client = dohttp.New(120*time.Second, false, false)
-	if conf.Conf.Proxy != "" {
-		err := client.SetProxy(conf.Conf.Proxy, nil)
+	if conf.Conf.Comm.Proxy != "" {
+		err := client.SetProxy(conf.Conf.Comm.Proxy)
 		if err != nil {
 			logger.Error.Printf("解析surge分流规则出错，设置网络代理时出错：%s\n", err)
-			c.JSON(http.StatusOK, entity.Rest{Errcode: 5000,
+			c.JSON(http.StatusOK, entity.Rest{Code: 5000,
 				Msg: fmt.Sprintf("设置网络代理时出错")})
 			return
 		}
@@ -31,7 +31,7 @@ func ParseSurge(c *gin.Context) {
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Error.Printf("解析surge分流规则出错，请求出错：%s\n", err)
-		c.JSON(http.StatusOK, entity.Rest{Errcode: 5100,
+		c.JSON(http.StatusOK, entity.Rest{Code: 5100,
 			Msg: fmt.Sprintf("请求出错")})
 		return
 	}
@@ -40,7 +40,7 @@ func ParseSurge(c *gin.Context) {
 	bs, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Error.Printf("解析surge分流规则出错，无法读取响应内容：'%s'\n", url)
-		c.JSON(http.StatusOK, entity.Rest{Errcode: 5200,
+		c.JSON(http.StatusOK, entity.Rest{Code: 5200,
 			Msg: fmt.Sprintf("解析surge分流规则出错，无法读取响应内容：'%s'", url)})
 		return
 	}

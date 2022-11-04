@@ -10,13 +10,21 @@ import (
 	"io"
 	"net/http"
 	"pc-phone-conn-go/conf"
+	. "pc-phone-conn-go/conf"
 	"pc-phone-conn-go/entity"
-	"pc-phone-conn-go/logger"
+	"pc-phone-conn-go/funcs/logger"
 	"time"
 )
 
+func init() {
+	// 指定默认配置
+	if Conf.QLPanel.Port == 0 {
+		Conf.QLPanel.Port = 5700
+	}
+}
+
 // 接口的域名
-var host = fmt.Sprintf("http://127.0.0.1:%s", conf.Conf.QLPanel.Port)
+var host = fmt.Sprintf("http://127.0.0.1:%d", conf.Conf.QLPanel.Port)
 
 var client = dohttp.New(10*time.Second, false, false)
 
@@ -29,8 +37,8 @@ func SetEnv(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("获取 青龙 Token Headers 出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6000,
-			Msg:     "获取 青龙 Token Headers 出错",
+			Code: 6000,
+			Msg:  "获取 青龙 Token Headers 出错",
 		})
 		return
 	}
@@ -40,8 +48,8 @@ func SetEnv(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("解析设置环境变量的请求内容时出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6000,
-			Msg:     "解析设置环境变量的请求内容时出错",
+			Code: 6000,
+			Msg:  "解析设置环境变量的请求内容时出错",
 		})
 		return
 	}
@@ -65,8 +73,8 @@ func SetEnv(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("序列号设置环境变量的内容时出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6000,
-			Msg:     "序列号设置环境变量的内容时出错",
+			Code: 6000,
+			Msg:  "序列号设置环境变量的内容时出错",
 		})
 		return
 	}
@@ -76,8 +84,8 @@ func SetEnv(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("创建设置环境变量的请求时出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6000,
-			Msg:     "创建设置环境变量的请求时出错",
+			Code: 6000,
+			Msg:  "创建设置环境变量的请求时出错",
 		})
 		return
 	}
@@ -88,8 +96,8 @@ func SetEnv(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("发送设置环境变量的请求时出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6000,
-			Msg:     "发送设置环境变量的请求时出错",
+			Code: 6000,
+			Msg:  "发送设置环境变量的请求时出错",
 		})
 		return
 	}
@@ -99,8 +107,8 @@ func SetEnv(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("读取设置环境变量的响应时出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6000,
-			Msg:     "读取设置环境变量的响应时出错",
+			Code: 6000,
+			Msg:  "读取设置环境变量的响应时出错",
 		})
 		return
 	}
@@ -111,8 +119,8 @@ func SetEnv(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("解析设置环境变量的响应时出错：%s ==> '%s'\n", err, string(bs))
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6000,
-			Msg:     "解析设置环境变量的响应时出错",
+			Code: 6000,
+			Msg:  "解析设置环境变量的响应时出错",
 		})
 		return
 	}
@@ -121,16 +129,16 @@ func SetEnv(c *gin.Context) {
 	if basicResp.Code != 200 {
 		logger.Error.Printf("设置环境变量时出错：%s\n", string(bs))
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6100,
-			Msg:     "设置环境变量时出错",
+			Code: 6100,
+			Msg:  "设置环境变量时出错",
 		})
 		return
 	}
 
 	logger.Info.Printf("已设置环境变量：%s\n", setEnvReq.Name)
 	c.JSON(http.StatusOK, entity.Rest{
-		Errcode: 0,
-		Msg:     "已设置环境变量",
+		Code: 0,
+		Msg:  "已设置环境变量",
 	})
 }
 
@@ -173,16 +181,16 @@ func StartCommCrons(c *gin.Context) {
 	if err != nil {
 		logger.Error.Printf("执行定时任务时出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Errcode: 6100,
-			Msg:     fmt.Sprintf("执行定时任务时出错：%s", err),
+			Code: 6100,
+			Msg:  fmt.Sprintf("执行定时任务时出错：%s", err),
 		})
 		return
 	}
 
 	logger.Info.Printf("已发送执行定时任务的请求，共计 %d 个任务\n", num)
 	c.JSON(http.StatusOK, entity.Rest{
-		Errcode: 0,
-		Msg:     fmt.Sprintf("已发送执行定时任务的请求，共计 %d 个任务\n", num),
+		Code: 0,
+		Msg:  fmt.Sprintf("已发送执行定时任务的请求，共计 %d 个任务\n", num),
 	})
 }
 

@@ -1,14 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"github.com/donething/utils-go/dofile"
 	"github.com/getlantern/systray"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
+	"pc-phone-conn-go/funcs/logger"
 	"pc-phone-conn-go/icons"
-	"pc-phone-conn-go/logger"
+	"pc-phone-conn-go/tools/pics"
 	"pc-phone-conn-go/tools/ql"
 	"pc-phone-conn-go/tools/qx"
 	"runtime"
@@ -17,7 +19,7 @@ import (
 
 const (
 	// 服务端口
-	port = "8800"
+	port = 8800
 )
 
 func init() {
@@ -51,6 +53,15 @@ func main() {
 	// 剪贴板
 	router.POST("/api/clip", handerClip)
 
+	// 图片下载发送
+	router.POST("/api/pics/dl", pics.Donwload)
+	router.GET("/api/pics/dl/status", pics.Status)
+	router.POST("/api/pics/dl/retry", pics.Retry)
+	router.GET("/api/pics/dl/count", pics.Count)
+	router.GET("/api/pics/dl/faillist", pics.FailList)
+	router.GET("/api/pics/dl/skiplist", pics.SkipList)
+	router.POST("/api/pics/del/yikeall", pics.DelYikeAll)
+
 	// qx
 	router.GET("/api/qx/parse_surge", qx.ParseSurge)
 
@@ -58,8 +69,8 @@ func main() {
 	router.POST("/api/ql/set_env", ql.SetEnv)
 	router.POST("/api/ql/start_comm_crons", ql.StartCommCrons)
 
-	logger.Info.Println("开始本地服务：http://127.0.0.1:" + port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	logger.Info.Printf("开始本地服务：http://127.0.0.1:%d\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
 }
 
 func CheckErr(err error) {

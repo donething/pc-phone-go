@@ -5,20 +5,50 @@ import (
 	"github.com/donething/utils-go/dofile"
 	"os"
 	"path"
-	"pc-phone-conn-go/logger"
+	"pc-phone-conn-go/funcs/logger"
 )
 
 type Config struct {
-	// 使用代理，为空表示不使用代理
-	Proxy string `json:"proxy"`
+	Comm struct {
+		// 使用代理，为空表示不使用代理
+		Proxy string `json:"proxy"`
+
+		// 微信推送
+		WXPush struct {
+			Appid   string `json:"appid"`   // 组织 ID
+			Secret  string `json:"secret"`  // 秘钥
+			Agentid int    `json:"agentid"` // 应用（频道） ID
+		}
+	} `json:"comm"`
 
 	// 青龙面板
 	QLPanel struct {
 		// 默认 5700
-		Port         string `json:"port"`
+		Port         int    `json:"port"`
 		ClientID     string `json:"client_id"`
 		ClientSecret string `json:"client_secret"`
 	} `json:"ql_panel"`
+
+	Pics struct {
+		// 工作池的容量，默认 10
+		WorkerCount int `json:"worker_count"`
+		// 对文件数据的处理，可从常量中选择 Handler***
+		Handler string `json:"handler"`
+		// 当 Handler 的值为 HandlerToLocal 时，保存文件到的本地目录
+		LocalRoot string `json:"local_root"`
+		// 推送
+		// 一刻相册
+		Yike struct {
+			// 在一刻页面的网络调试工具中选择一个 fetch/XHR 请求，点击 Payload 标签可看到
+			Bdstoken string `json:"bdstoken"`
+			Cookie   string `json:"cookie"`
+		} `json:"toyike"`
+		// Telegram 推送消息
+		TG struct {
+			PicSaveToken  string `json:"pic_save_token"`
+			PicSaveChatID string `json:"pic_save_chat_id"`
+		} `json:"tg"`
+	} `json:"pics"`
 }
 
 const (
@@ -44,10 +74,10 @@ func init() {
 		err = json.Unmarshal(bs, &Conf)
 		fatal(err)
 
-		// 指定默认配置
-		if Conf.QLPanel.Port == "" {
-			Conf.QLPanel.Port = "5700"
-		}
+		bs, err = json.MarshalIndent(Conf, "", "  ")
+		fatal(err)
+		_, err = dofile.Write(bs, confPath+".bak", os.O_CREATE|os.O_TRUNC, 0644)
+		fatal(err)
 	}
 
 	bs, err := json.MarshalIndent(Conf, "", "  ")

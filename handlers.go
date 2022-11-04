@@ -16,7 +16,8 @@ import (
 	"net/http"
 	"os/exec"
 	"path/filepath"
-	"pc-phone-conn-go/logger"
+	"pc-phone-conn-go/funcs"
+	"pc-phone-conn-go/funcs/logger"
 	"regexp"
 	"strings"
 	"time"
@@ -31,7 +32,7 @@ func index(c *gin.Context) {
 	CheckErr(err)
 	localIP := conn.LocalAddr().String()
 
-	qr, err := qrcode.New(fmt.Sprintf("http://%s:%s", localIP, port), qrcode.Medium)
+	qr, err := qrcode.New(fmt.Sprintf("http://%s:%d", localIP, port), qrcode.Medium)
 	CheckErr(err)
 	png, err := qr.PNG(256)
 	CheckErr(err)
@@ -124,7 +125,7 @@ func handerClip(c *gin.Context) {
 		}
 	} else {
 		filename := getFilename(header)
-		path, _ := filepath.Abs(filepath.Join(FileDir(), dofile.ValidFileName(filename, "_")))
+		path, _ := filepath.Abs(filepath.Join(funcs.FileDir(), dofile.ValidFileName(filename, "_")))
 		logger.Info.Printf("收到大文件，将保存到：'%s'\n", op, path)
 		err = c.SaveUploadedFile(header, path)
 		feedback = "收到大文本或文件，已作为文件保存"
