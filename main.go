@@ -10,6 +10,7 @@ import (
 	"os"
 	"pc-phone-conn-go/funcs/logger"
 	"pc-phone-conn-go/icons"
+	"pc-phone-conn-go/tools/lives"
 	"pc-phone-conn-go/tools/pics"
 	"pc-phone-conn-go/tools/ql"
 	"pc-phone-conn-go/tools/qx"
@@ -68,6 +69,9 @@ func main() {
 	// ql
 	router.POST("/api/ql/set_env", ql.SetEnv)
 	router.POST("/api/ql/start_comm_crons", ql.StartCommCrons)
+
+	// lives
+	router.GET("/api/lives/douyin/live", lives.GetDouyinRoom)
 
 	logger.Info.Printf("开始本地服务：http://127.0.0.1:%d\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
