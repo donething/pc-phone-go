@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"pc-phone-conn-go/entity"
+	"pc-phone-conn-go/tools/lives/douyin"
 )
 
 // GetDouyinRoom 获取抖音直播间状态
@@ -16,7 +17,7 @@ func GetDouyinRoom(c *gin.Context) {
 		return
 	}
 
-	status, err := getDouyinRoomStatus(secUid)
+	status, err := douyin.GetDouyinRoomStatus(secUid)
 	if err != nil {
 		c.JSON(http.StatusOK, entity.Rest{Code: 2000, Msg: err.Error()})
 		return
