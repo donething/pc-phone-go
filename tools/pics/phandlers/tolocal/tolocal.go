@@ -5,8 +5,8 @@ import (
 	"github.com/donething/utils-go/dofile"
 	"os"
 	"path/filepath"
-	. "pc-phone-conn-go/conf"
-	"pc-phone-conn-go/tools/pics/pcomm"
+	. "pc-phone-go/conf"
+	"pc-phone-go/tools/pics/pcomm"
 	"strings"
 )
 

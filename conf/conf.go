@@ -5,7 +5,7 @@ import (
 	"github.com/donething/utils-go/dofile"
 	"os"
 	"path"
-	"pc-phone-conn-go/funcs/logger"
+	"pc-phone-go/funcs/logger"
 )
 
 type Config struct {
@@ -53,7 +53,7 @@ type Config struct {
 
 const (
 	// Name 配置文件的名字
-	Name = "pc-phone-conn-go.json"
+	Name = "pc-phone-go.json"
 )
 
 var (

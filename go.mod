@@ -1,4 +1,4 @@
-module pc-phone-conn-go
+module pc-phone-go
 
 go 1.18
 

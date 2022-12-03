@@ -3,8 +3,8 @@ package database
 import (
 	"encoding/json"
 	"github.com/donething/utils-go/dodb/dobadger"
-	"pc-phone-conn-go/funcs/logger"
-	"pc-phone-conn-go/tools/pics/pcomm"
+	"pc-phone-go/funcs/logger"
+	"pc-phone-go/tools/pics/pcomm"
 )
 
 const (

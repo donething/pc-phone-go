@@ -3,7 +3,7 @@ package toyike
 import (
 	"encoding/json"
 	"os"
-	"pc-phone-conn-go/tools/pics/pcomm"
+	"pc-phone-go/tools/pics/pcomm"
 	"testing"
 )
 

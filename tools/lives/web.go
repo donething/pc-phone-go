@@ -3,8 +3,8 @@ package lives
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"pc-phone-conn-go/entity"
-	"pc-phone-conn-go/tools/lives/douyin"
+	"pc-phone-go/entity"
+	"pc-phone-go/tools/lives/douyin"
 )
 
 // GetDouyinRoom 获取抖音直播间状态

@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"pc-phone-conn-go/tools/pics/pcomm"
+	"pc-phone-go/tools/pics/pcomm"
 	"regexp"
 )
 

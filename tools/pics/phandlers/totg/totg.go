@@ -3,8 +3,7 @@ package totg
 import (
 	"fmt"
 	"github.com/donething/utils-go/dotgpush"
-	. "pc-phone-conn-go/conf"
-	"pc-phone-conn-go/tools/pics/pcomm"
+	"pc-phone-go/tools/pics/pcomm"
 )
 
 var (

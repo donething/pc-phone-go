@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pc-phone-conn-go/conf"
-	"pc-phone-conn-go/entity"
-	"pc-phone-conn-go/funcs/logger"
+	"pc-phone-go/conf"
+	"pc-phone-go/entity"
+	"pc-phone-go/funcs/logger"
 	"strings"
 	"time"
 )

@@ -12,9 +12,8 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	. "pc-phone-conn-go/conf"
-	"pc-phone-conn-go/funcs/logger"
-	"pc-phone-conn-go/tools/pics/pcomm"
+	"pc-phone-go/funcs/logger"
+	"pc-phone-go/tools/pics/pcomm"
 	"strings"
 	"time"
 )

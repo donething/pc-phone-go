@@ -3,9 +3,8 @@ package pcomm
 import (
 	"fmt"
 	"github.com/donething/utils-go/dohttp"
-	. "pc-phone-conn-go/conf"
-	"pc-phone-conn-go/funcs/logger"
-	"pc-phone-conn-go/funcs/notify"
+	"pc-phone-go/funcs/logger"
+	"pc-phone-go/funcs/notify"
 	"time"
 )
 

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/donething/utils-go/dofile"
 	"math/rand"
-	"pc-phone-conn-go/funcs/logger"
-	"pc-phone-conn-go/tools/pics/pcomm"
+	"pc-phone-go/funcs/logger"
+	"pc-phone-go/tools/pics/pcomm"
 	"time"
 )
 
