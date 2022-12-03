@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	. "pc-phone-go/conf"
+	"pc-phone-go/funcs/database"
 	"pc-phone-go/funcs/logger"
 	"pc-phone-go/funcs/notify"
 	"pc-phone-go/tools/pics/pcomm"
@@ -96,7 +98,7 @@ func (w *PWorkers) work(id int) {
 
 				// 保存到数据库
 				taskBS, _ := json.Marshal(task)
-				errSet := DB.Set([]byte(pcomm.DBSkip+dbkey), taskBS)
+				errSet := database.DB.Set([]byte(pcomm.DBSkip+dbkey), taskBS)
 				if errSet != nil {
 					logger.Error.Printf("[Worker][%s] 保存跳过下载的图集'%s'到数据库时出错：%s\n",
 						task.Plat, task.ID, errSet)
@@ -114,7 +116,7 @@ func (w *PWorkers) work(id int) {
 				w.MuFail.Unlock()
 				// 保存到数据库
 				taskBS, _ := json.Marshal(task)
-				errSet := DB.Set([]byte(pcomm.DBFail+dbkey), taskBS)
+				errSet := database.DB.Set([]byte(pcomm.DBFail+dbkey), taskBS)
 				if errSet != nil {
 					logger.Error.Printf("[Worker][%s] 保存下载失败的图集'%s'到数据库时出错：%s\n",
 						task.Plat, task.ID, errSet)
@@ -139,7 +141,7 @@ func (w *PWorkers) work(id int) {
 func delLog(task pcomm.Album, dbkey string) {
 	// 为重试任务时，成功后需要删除该任务记录
 	if strings.TrimSpace(task.RetryFrom) != "" {
-		err := DB.Del([]byte(task.RetryFrom + dbkey))
+		err := database.DB.Del([]byte(task.RetryFrom + dbkey))
 		if err != nil {
 			logger.Error.Printf("[Worker][%s] 删除数据库中图集'%s'的下载失败记录时出错：%s\n",
 				task.Plat, task.ID, err)

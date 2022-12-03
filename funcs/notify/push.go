@@ -3,6 +3,7 @@ package notify
 import (
 	"fmt"
 	"github.com/donething/utils-go/dowxpush"
+	. "pc-phone-go/conf"
 )
 
 var (

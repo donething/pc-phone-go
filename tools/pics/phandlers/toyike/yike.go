@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	. "pc-phone-go/conf"
 	"pc-phone-go/funcs/logger"
 	"pc-phone-go/tools/pics/pcomm"
 	"strings"

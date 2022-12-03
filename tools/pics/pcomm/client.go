@@ -3,6 +3,7 @@ package pcomm
 import (
 	"fmt"
 	"github.com/donething/utils-go/dohttp"
+	"pc-phone-go/conf"
 	"pc-phone-go/funcs/logger"
 	"pc-phone-go/funcs/notify"
 	"time"
@@ -15,7 +16,7 @@ var (
 
 func init() {
 	// 如果配置中指定了代理，需要设置
-	proxy := Conf.Comm.Proxy
+	proxy := conf.Conf.Comm.Proxy
 	if proxy != "" {
 		err := Client.SetProxy(proxy)
 		if err != nil {
