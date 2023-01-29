@@ -51,7 +51,7 @@ func Send(c *gin.Context) {
 				MuChs.Lock()
 				delete(EventsChs, hash)
 				MuChs.Unlock()
-				logger.Info.Printf("删除了已超时的消息通道，hash:'%s'\n", hash)
+				logger.Warn.Printf("删除了已超时的消息通道，hash:'%s'\n", hash)
 				// 发送结束该请求的消息
 				SendToEventCh(eventCh, NewMsg("message", true, exitTimeout, nil))
 				return

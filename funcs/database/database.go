@@ -101,5 +101,5 @@ func indexSubtitles() {
 		return
 	}
 
-	logger.Info.Printf("已创建字幕索引数据库\n")
+	logger.Warn.Printf("已创建字幕索引数据库\n")
 }

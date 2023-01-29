@@ -5,7 +5,6 @@ import (
 	"github.com/donething/utils-go/dofile"
 	"github.com/getlantern/systray"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -100,7 +99,7 @@ func main() {
 	router.POST("/api/fanhao/rename", javlib.RenameDir)
 
 	logger.Info.Printf("开始本地服务：http://127.0.0.1:%d\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
+	logger.Error.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
 }
 
 // 显示systray托盘
@@ -164,7 +163,7 @@ func onReady() {
 
 		case <-mQuit.ClickedCh:
 			// 退出程序
-			logger.Info.Println("退出程序")
+			logger.Warn.Println("退出程序")
 			systray.Quit()
 			os.Exit(0)
 		}

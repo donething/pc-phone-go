@@ -95,7 +95,7 @@ func init() {
 	logger.Info.Printf("已重写配置文件：'%s'\n", confPath)
 
 	if !exist {
-		logger.Info.Printf("请填写配置文件后，重新运行\n")
+		logger.Warn.Printf("请填写配置文件后，重新运行\n")
 		os.Exit(0)
 	}
 }
