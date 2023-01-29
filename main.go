@@ -8,10 +8,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"pc-phone-go/funcs/logger"
 	"pc-phone-go/icons"
 	"pc-phone-go/tools/lives"
 	"pc-phone-go/tools/pics"
+	"pc-phone-go/tools/pics/pworker"
 	"pc-phone-go/tools/ql"
 	"pc-phone-go/tools/qx"
 	"runtime"
@@ -24,17 +26,17 @@ const (
 )
 
 func init() {
-	go func() {
-		// 在本应用运行后需等一段时间，等 Docker 启动目标容器后才执行脚本，用于电脑刚开机时
-		t := time.NewTimer(3 * time.Minute)
-		<-t.C
-
-		_, err := ql.StartCommCronsCall()
-		if err != nil {
-			logger.Error.Printf("执行定时任务时出错：%s\n", err)
-			return
-		}
-	}()
+	// go func() {
+	// 	// 在本应用运行后需等一段时间，等 Docker 启动目标容器后才执行脚本，用于电脑刚开机时
+	// 	t := time.NewTimer(3 * time.Minute)
+	// 	<-t.C
+	//
+	// 	_, err := ql.StartCommCronsCall()
+	// 	if err != nil {
+	// 		logger.Error.Printf("执行定时任务时出错：%s\n", err)
+	// 		return
+	// 	}
+	// }()
 
 	// 显示托盘
 	go func() {
@@ -77,12 +79,6 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
 }
 
-func CheckErr(err error) {
-	if err != nil {
-		logger.Error.Panicln(err)
-	}
-}
-
 // 显示systray托盘
 func onReady() {
 	systray.SetIcon(icons.Tray)
@@ -92,7 +88,33 @@ func onReady() {
 	mMatchQL := systray.AddMenuItem("运行青龙脚本", "运行青龙脚本")
 	mOpenLog := systray.AddMenuItem("打开日志", "打开日志文件")
 	systray.AddSeparator()
+	mShutdown := systray.AddMenuItemCheckbox("自动关机", "完成所有任务后将自动关闭计算机", false)
+	systray.AddSeparator()
 	mQuit := systray.AddMenuItem("退出", "退出程序")
+
+	// 每分钟检查是否有任务，没有将自动关机
+	taskTicker := time.NewTicker(1 * time.Minute)
+	taskTicker.Stop()
+	go func() {
+		for range taskTicker.C {
+			// 判断任务
+			// 判断图集任务
+			hasPicsTask := false
+			pworker.MapPWorker.Range(func(_, _ interface{}) bool {
+				hasPicsTask = true
+				return false
+			})
+			if hasPicsTask {
+				break
+			}
+
+			// 所有任务经过判断，已完成，关机
+			if err := exec.Command("cmd", "/C", "shutdown", "/s", "/t", "60").Run(); err != nil {
+				fmt.Println("执行关机出错：", err)
+				return
+			}
+		}
+	}()
 
 	for {
 		select {
@@ -108,6 +130,12 @@ func onReady() {
 			if err != nil {
 				logger.Error.Printf("执行定时任务时出错：%s\n", err)
 				return
+			}
+		case <-mShutdown.ClickedCh:
+			if mShutdown.Checked() {
+				taskTicker.Reset(1 * time.Minute)
+			} else {
+				taskTicker.Stop()
 			}
 
 		case <-mQuit.ClickedCh:

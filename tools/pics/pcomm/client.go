@@ -6,12 +6,11 @@ import (
 	"pc-phone-go/conf"
 	"pc-phone-go/funcs/logger"
 	"pc-phone-go/funcs/notify"
-	"time"
 )
 
 var (
 	// Client 执行 HTTP 请求的客户端
-	Client = dohttp.New(30*time.Second, false, false)
+	Client = dohttp.New(false, false)
 )
 
 func init() {

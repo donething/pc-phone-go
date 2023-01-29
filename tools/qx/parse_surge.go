@@ -10,12 +10,11 @@ import (
 	"pc-phone-go/entity"
 	"pc-phone-go/funcs/logger"
 	"strings"
-	"time"
 )
 
 // ParseSurge 解析 surge 分流规则
 func ParseSurge(c *gin.Context) {
-	var client = dohttp.New(120*time.Second, false, false)
+	var client = dohttp.New(false, false)
 	if conf.Conf.Comm.Proxy != "" {
 		err := client.SetProxy(conf.Conf.Comm.Proxy)
 		if err != nil {

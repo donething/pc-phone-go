@@ -13,7 +13,6 @@ import (
 	. "pc-phone-go/conf"
 	"pc-phone-go/entity"
 	"pc-phone-go/funcs/logger"
-	"time"
 )
 
 func init() {
@@ -26,7 +25,7 @@ func init() {
 // 接口的域名
 var host = fmt.Sprintf("http://127.0.0.1:%d", conf.Conf.QLPanel.Port)
 
-var client = dohttp.New(10*time.Second, false, false)
+var client = dohttp.New(false, false)
 
 // SetEnv 设置环境变量
 //

@@ -29,17 +29,17 @@ const clipMAXSIZE = 512
 // 首页，显示二维码
 func index(c *gin.Context) {
 	conn, err := net.Dial("ip:icmp", "google.com")
-	CheckErr(err)
+	funcs.CheckErr(err)
 	localIP := conn.LocalAddr().String()
 
 	qr, err := qrcode.New(fmt.Sprintf("http://%s:%d", localIP, port), qrcode.Medium)
-	CheckErr(err)
+	funcs.CheckErr(err)
 	png, err := qr.PNG(256)
-	CheckErr(err)
+	funcs.CheckErr(err)
 	c.Writer.Header().Set("Content-Type", "image/png")
 	c.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", len(png)))
 	_, err = c.Writer.Write(png)
-	CheckErr(err)
+	funcs.CheckErr(err)
 }
 
 // PC 端数据处理
