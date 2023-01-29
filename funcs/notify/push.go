@@ -25,7 +25,7 @@ func WXPushCard(title string, description string, url string, btnText string) {
 }
 
 // WXPushText 推送微信文本消息
-func WXPushText(content string, url string) {
+func WXPushText(content string) {
 	if !initPush() {
 		return
 	}

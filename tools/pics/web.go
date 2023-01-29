@@ -231,6 +231,11 @@ func start(albums []pcomm.Album) error {
 	// 等待任务完成
 	pworkers.WGTask.Wait()
 
+	// 统计成功
+	var doneCount = 0
+	pworkers.MuDone.Lock()
+	doneCount = pworkers.DoneCount
+	pworkers.MuDone.Unlock()
 	// 统计跳过
 	var skipCount = 0
 	pworkers.MuSkip.Lock()
@@ -243,17 +248,9 @@ func start(albums []pcomm.Album) error {
 	pworkers.MuFail.Unlock()
 
 	// 发送消息
-	skipMsg := ""
-	if skipCount > 0 {
-		skipMsg = fmt.Sprintf("，已跳过 %d 个图集", skipCount)
-	}
-	failMsg := ""
-	if failCount > 0 {
-		failMsg = fmt.Sprintf("，下载失败 %d 个图集", failCount)
-	}
-
-	logger.Info.Printf("图集下载任务已完成：共有 %d 个图集%s%s", len(albums), skipMsg, failMsg)
-	push.WXPushCard("VPS 图集下载任务已完成", fmt.Sprintf("图集下载任务已完成：共有 %d 个图集%s%s",
-		len(albums), skipMsg, failMsg), "", "")
+	msg := fmt.Sprintf("图集下载任务已完成：共有 %d 个图集。成功 %d 个，失败 %d 个，跳过 %d 个",
+		len(albums), doneCount, failCount, skipCount)
+	logger.Info.Println(msg)
+	push.WXPushCard("[VPS] 图集下载任务已完成", msg, "", "")
 	return nil
 }
