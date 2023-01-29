@@ -23,3 +23,20 @@ go build -ldflags="-H windowsgui"
     4. 当没有匹配到上述情况时，将作为文件保存到 用户下载目录
 2. content 文件 需保存到 PC 端的文件（保存在用户下载文满中）
 
+## javlib
+
+* `/api/openfile` 打开/显示本地的文件（夹）。`POST`传递 JSON 数据：`{method: string, path: string}`。`method`可选值为`open`
+  、`show`，`path`
+  为文件（夹）的路径
+* `/api/fanhaos` 查询本地是否有番号对应的视频。`POST`传递 JSON 数据：`[string, string]`。返回番号以其文件的路径的键值对。
+* `/api/subtitle` 查询本地是否有番号对应的字幕。`POST`传递 JSON 数据：`{fanhao: string}`。返回字幕的路径。
+
+### Linux 上还需要安装依赖包
+
+* `apt install xclip`
+* `apt install libgtk-3-dev libappindicator3-dev`
+
+### 依赖项目
+
+* [atotto/clipboard](https://github.com/atotto/clipboard)
+* [getlantern/systray](https://github.com/getlantern/systray)

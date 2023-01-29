@@ -49,6 +49,14 @@ type Config struct {
 			PicSaveChatID string `json:"pic_save_chat_id"`
 		} `json:"tg"`
 	} `json:"pics"`
+
+	// Javlib
+	Javlib struct {
+		// 视频目录的数组
+		FanDirs []string `json:"fan_dirs"`
+		// 字幕文件目录
+		SubDir string `json:"sub_dir"`
+	} `json:"javlib"`
 }
 
 const (
