@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"pc-phone-go/entity"
+	"pc-phone-go/funcs/logger"
 	"pc-phone-go/tools/lives/douyin"
 )
 
@@ -19,6 +20,7 @@ func GetDouyinRoom(c *gin.Context) {
 
 	status, err := douyin.GetDouyinRoomStatus(secUid)
 	if err != nil {
+		logger.Error.Printf("获取抖音数据出错：%s\n", err)
 		c.JSON(http.StatusOK, entity.Rest{Code: 2000, Msg: err.Error()})
 		return
 	}
