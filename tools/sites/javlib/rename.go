@@ -74,12 +74,7 @@ func Rename(paths []string, eventCh chan sse.Event) {
 					fmt.Sprintf("查找番号'%s'出错：'%s'", fanhao, err), path))
 				return nil
 			}
-			if fanhaoName == "" {
-				logger.Warn.Printf("数据库中没有番号'%s'：'%s'\n", fanhao, path)
-				mysse.SendToEventCh(eventCh, mysse.NewMsg(eventRename, false,
-					fmt.Sprintf("数据库中没有番号'%s'", fanhao), path))
-				return nil
-			}
+
 			// 如果番号以"-C"结尾，表示包含中文字幕，需要在文件名的番号后添加"-C"以体现
 			if strings.Contains(strings.ToUpper(name), "-C") {
 				fanhaoName = strings.Replace(fanhaoName, fanhao, fanhao+"-C", 1)
@@ -116,18 +111,20 @@ func Rename(paths []string, eventCh chan sse.Event) {
 }
 
 // 获取番号对应的全名
-func obtainFanhaoName(fanhao string) (fanhaoName string, err error) {
+func obtainFanhaoName(fanhao string) (string, error) {
 	// 联网获取包含番号的文本
 	url := fmt.Sprintf(avDetailURL, fanhao)
 	text, err := client.GetText(url, nil)
 	if err != nil {
-		return
+		return "", err
 	}
+
 	// 提取番号名
 	p := regexp.MustCompile(`<h3>(.+)</h3>`)
 	m := p.FindStringSubmatch(text)
 	if len(m) >= 2 {
-		fanhaoName = strings.TrimSpace(m[1])
+		return strings.TrimSpace(m[1]), nil
 	}
-	return
+
+	return "", fmt.Errorf("not found")
 }
