@@ -2,7 +2,10 @@
 go.sum
 *.exe
 pc-phone-conn
+
 *.log
+
 *.json
-*.bak
-mydb
+*.json.bak
+
+*.db

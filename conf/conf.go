@@ -29,27 +29,6 @@ type Config struct {
 		ClientSecret string `json:"client_secret"`
 	} `json:"ql_panel"`
 
-	Pics struct {
-		// 工作池的容量，默认 10
-		WorkerCount int `json:"worker_count"`
-		// 对文件数据的处理，可从常量中选择 Handler***
-		Handler string `json:"handler"`
-		// 当 Handler 的值为 HandlerToLocal 时，保存文件到的本地目录
-		LocalRoot string `json:"local_root"`
-		// 推送
-		// 一刻相册
-		Yike struct {
-			// 在一刻页面的网络调试工具中选择一个 fetch/XHR 请求，点击 Payload 标签可看到
-			Bdstoken string `json:"bdstoken"`
-			Cookie   string `json:"cookie"`
-		} `json:"toyike"`
-		// Telegram 推送消息
-		TG struct {
-			PicSaveToken  string `json:"pic_save_token"`
-			PicSaveChatID string `json:"pic_save_chat_id"`
-		} `json:"tg"`
-	} `json:"pics"`
-
 	// Javlib
 	Javlib struct {
 		// 视频目录的数组

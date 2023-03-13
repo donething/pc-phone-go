@@ -1,9 +1,7 @@
 package javlib
 
 import (
-	"errors"
-	"github.com/dgraph-io/badger/v3"
-	"pc-phone-go/funcs/database"
+	"pc-phone-go/funcs/db"
 	"strings"
 )
 
@@ -12,24 +10,21 @@ import (
 // fanhao 番号
 func MatchSubtitle(fanhao string) ([]string, error) {
 	// 先转为大写的番号
-	fh := strings.ToUpper(fanhao)
-	// 通过键准确查找
-	bs, err := database.DB.Get([]byte(database.PreKeySub + fh))
-	if err != nil {
-		if errors.Is(err, badger.ErrKeyNotFound) {
-			return nil, nil
-		}
+	fh := strings.ToUpper(strings.TrimSpace(fanhao))
 
+	// 通过键准确查找
+	bs, err := db.DB.Get([]byte(fh), db.BkSubtitle)
+	if err != nil {
 		return nil, err
 	}
-	// 已找到，返回
-	path := string(bs)
-	if path != "" {
-		return []string{path}, nil
+
+	// 已找到时，直接返回
+	if bs != nil {
+		return []string{string(bs)}, nil
 	}
 
-	// 未找到时，遍历所有键模糊查找
-	data, err := database.DB.QueryPrefix(database.PreKeySub, fanhao)
+	// 未找到时，模糊查找
+	data, err := db.DB.Query(fh, db.BkSubtitle)
 	if err != nil {
 		return nil, err
 	}

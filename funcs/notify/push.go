@@ -2,13 +2,13 @@ package notify
 
 import (
 	"fmt"
-	"github.com/donething/utils-go/dowxpush"
+	"github.com/donething/utils-go/dowx"
 	. "pc-phone-go/conf"
 )
 
 var (
 	// WXQiYe 微信推送
-	WXQiYe *dowxpush.QiYe
+	WXQiYe *dowx.QiYe
 )
 
 // WXPushCard 推送微信卡片消息
@@ -44,7 +44,7 @@ func initPush() bool {
 			fmt.Printf("微信推送的 Token 为空，无法推送消息\n")
 			return false
 		}
-		WXQiYe = dowxpush.NewQiYe(Conf.Comm.WXPush.Appid, Conf.Comm.WXPush.Secret)
+		WXQiYe = dowx.NewQiYe(Conf.Comm.WXPush.Appid, Conf.Comm.WXPush.Secret)
 	}
 
 	return true

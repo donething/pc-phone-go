@@ -1,21 +1,20 @@
-package database
+package db
 
 import (
-	"encoding/json"
-	"github.com/donething/utils-go/dodb/dobadger"
+	"github.com/donething/utils-go/dodb/dobolt"
 	"github.com/donething/utils-go/dofile"
+	"github.com/donething/utils-go/dolog"
 	"github.com/donething/utils-go/dotext"
 	"io/fs"
 	"path/filepath"
 	"pc-phone-go/conf"
 	"pc-phone-go/funcs/logger"
-	"pc-phone-go/tools/pics/pcomm"
 	"strings"
 )
 
 const (
 	// 数据库的路径
-	dbDir = "mydb"
+	dbPath = "pc-phone-go.db"
 
 	// PreKeySub 数据库中存放字幕信息的键前缀
 	PreKeySub = "sub_"
@@ -25,46 +24,32 @@ const (
 )
 
 var (
-	DB *dobadger.DoBadger
+	BkSubtitle = []byte("subtitle")
+)
+
+var (
+	DB *dobolt.DoBolt
 )
 
 func init() {
 	// 先判断数据库是否存在时，以便执行数据索引等操作
 	// 因为打开就会创建数据库的文件，所以需要放在 Exists() 之后，在判断其值之前
-	exist, err := dofile.Exists(dbDir)
+	exist, err := dofile.Exists(dbPath)
 	if err != nil {
 		logger.Error.Printf("判断数据库是否存在时出错：%s\n", err)
 		return
 	}
 
 	// 打开数据库
-	DB = dobadger.Open(dbDir, nil)
+	DB, err = dobolt.Open(dbPath, nil, nil)
 
+	err = DB.Create(BkSubtitle)
+	dolog.CkPanic(err)
+
+	// 其它操作
 	if !exist {
 		indexSubtitles()
 	}
-}
-
-// GetAll 读取保存的指定桶内的图集信息
-func GetAll(prefixStr string) ([]pcomm.Album, error) {
-	data, err := DB.QueryPrefix(prefixStr, "")
-	if err != nil {
-		return nil, err
-	}
-
-	albums := make([]pcomm.Album, 0, 0)
-	for _, bs := range data {
-		var album pcomm.Album
-		errUnmarshal := json.Unmarshal(bs, &album)
-		if errUnmarshal != nil {
-			logger.Error.Printf("解析 JSON 数据出错：'%s' ==> '%s'\n", string(bs), err)
-			continue
-		}
-		album.RetryFrom = prefixStr
-		albums = append(albums, album)
-	}
-
-	return albums, nil
 }
 
 // 创建字幕文件的索引到数据库
@@ -95,7 +80,7 @@ func indexSubtitles() {
 	}
 
 	// 批量保存到桶
-	err := DB.BatchSet(payload)
+	err := DB.Batch(payload, BkSubtitle)
 	if err != nil {
 		logger.Error.Printf("批量写入字幕数据到数据库时出错：%s\n", err)
 		return

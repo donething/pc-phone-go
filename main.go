@@ -13,8 +13,6 @@ import (
 	"pc-phone-go/funcs/mysse"
 	"pc-phone-go/icons"
 	"pc-phone-go/tools/lives"
-	"pc-phone-go/tools/pics"
-	"pc-phone-go/tools/pics/pworker"
 	"pc-phone-go/tools/ql"
 	"pc-phone-go/tools/qx"
 	"pc-phone-go/tools/sites/javlib"
@@ -60,15 +58,6 @@ func main() {
 
 	// 剪贴板
 	router.POST("/api/clip", handerClip)
-
-	// 图片下载发送
-	router.POST("/api/pics/dl", pics.Donwload)
-	router.GET("/api/pics/dl/status", pics.Status)
-	router.POST("/api/pics/dl/retry", pics.Retry)
-	router.GET("/api/pics/dl/count", pics.Count)
-	router.GET("/api/pics/dl/faillist", pics.FailList)
-	router.GET("/api/pics/dl/skiplist", pics.SkipList)
-	router.POST("/api/pics/del/yikeall", pics.DelYikeAll)
 
 	// qx
 	router.GET("/api/qx/parse_surge", qx.ParseSurge)
@@ -121,15 +110,6 @@ func onReady() {
 	go func() {
 		for range taskTicker.C {
 			// 判断任务
-			// 判断图集任务
-			hasPicsTask := false
-			pworker.MapPWorker.Range(func(_, _ interface{}) bool {
-				hasPicsTask = true
-				return false
-			})
-			if hasPicsTask {
-				break
-			}
 
 			// 所有任务经过判断，已完成，关机
 			if err := exec.Command("cmd", "/C", "shutdown", "/s", "/t", "60").Run(); err != nil {
