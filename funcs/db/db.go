@@ -16,9 +16,6 @@ const (
 	// 数据库的路径
 	dbPath = "pc-phone-go.db"
 
-	// PreKeySub 数据库中存放字幕信息的键前缀
-	PreKeySub = "sub_"
-
 	// 字幕文件的格式
 	subPatten = ".srt|.ass|.ssa"
 )
@@ -71,7 +68,7 @@ func indexSubtitles() {
 		}
 
 		key = strings.ToUpper(key)
-		payload[PreKeySub+key] = []byte(path)
+		payload[key] = []byte(path)
 		// log.Printf("已记录番号'%s': '%s'\n", key, path)
 		return nil
 	})
