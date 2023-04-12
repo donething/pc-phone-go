@@ -108,9 +108,10 @@ func GetUserInfo(secUid string) (*UserInfo, error) {
 	}
 
 	var status = UserInfo{
-		Avatar: avatar,
-		WebRid: user.RoomData.Owner.WebRid,
-		Name:   user.Nickname,
+		Avatar:  avatar,
+		WebRid:  user.RoomData.Owner.WebRid,
+		LiveUrl: fmt.Sprintf("https://live.douyin.com/%s", user.RoomData.Owner.WebRid),
+		Name:    user.Nickname,
 
 		Online: user.RoomData.Status == 2,
 		Title:  user.Desc,

@@ -17,6 +17,8 @@ type UserInfo struct {
 
 	// 网页直播间号。**当主播不在播时，此值为空""**
 	WebRid string `json:"webRid"`
+	// 网页直播间
+	LiveUrl string `json:"liveUrl"`
 	// 直播间的标题
 	Title string `json:"title"`
 }
