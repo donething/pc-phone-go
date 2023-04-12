@@ -8,22 +8,22 @@ import (
 	"pc-phone-go/tools/lives/douyin"
 )
 
-// GetDouyinRoom 获取抖音直播间状态
+// GetDouyinUserInfo 获取抖音直播间状态
 //
 // Get /api/lives/douyin/live?sec_uid=test-uid
-func GetDouyinRoom(c *gin.Context) {
+func GetDouyinUserInfo(c *gin.Context) {
 	secUid := c.Query("sec_uid")
 	if secUid == "" {
-		c.JSON(http.StatusOK, entity.Rest{Code: 1000, Msg: "没有提取到请求参数'web_rid'"})
+		c.JSON(http.StatusOK, entity.Rest{Code: 1000, Msg: "缺少参数'sec_uid'"})
 		return
 	}
 
-	status, err := douyin.GetDouyinRoomStatus(secUid)
+	userInfo, err := douyin.GetUserInfo(secUid)
 	if err != nil {
-		logger.Error.Printf("获取抖音数据出错：%s\n", err)
-		c.JSON(http.StatusOK, entity.Rest{Code: 2000, Msg: err.Error()})
+		logger.Error.Printf("获取抖音用户信息出错：%s\n", err)
+		c.JSON(http.StatusOK, entity.Rest{Code: 1010, Msg: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "抖音直播间状态", Data: status})
+	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "抖音用户信息", Data: userInfo})
 }

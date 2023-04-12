@@ -67,7 +67,7 @@ func main() {
 	router.POST("/api/ql/start_comm_crons", ql.StartCommCrons)
 
 	// lives
-	router.GET("/api/lives/douyin/live", lives.GetDouyinRoom)
+	router.GET("/api/lives/douyin/live", lives.GetDouyinUserInfo)
 
 	// 使用 SSE 向客户端传递消息
 	// 客户端请求需传递查询字符串参数 hash："?hash=xxx"，其值可看下面的说明

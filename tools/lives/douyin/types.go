@@ -1,25 +1,49 @@
 package douyin
 
-// RoomStatusTiny 返回给前端的直播间状态
-type RoomStatusTiny struct {
+// UserRoomStatus 返回给前端的用户信息、直播信息
+type UserRoomStatus struct {
+	*UserInfo
+	*LiveInfo
+}
+
+// UserInfo 返回给前端的用户信息
+type UserInfo struct {
 	// 头像
 	Avatar string `json:"avatar"`
-	// 直播页面
-	LiveUrl string `json:"liveUrl"`
-	// 流地址
-	StreamUrl string `json:"streamUrl"`
 	// 主播名/房间名
 	Name string `json:"name"`
-	// 是否在线，0：离线；1：在线：2：录播/回放
-	Online int `json:"online"`
+	// 是否在播
+	Online bool `json:"online"`
+
+	// 网页直播间号。**当主播不在播时，此值为空""**
+	WebRid string `json:"webRid"`
 	// 直播间的标题
 	Title string `json:"title"`
 }
 
-// LiveRoomStatus 从Web直播间得到的状态。
-// 可以获取到直播流地址(.m3u8)，如果以后需要，可以通过 https://live.douyin.com/492432036932 照同样方法获取到
-// 但主播不开播时，难以获取直播间web_rid，无法添加到chromium扩展中的关注
-type LiveRoomStatus struct {
+// LiveInfo 返回给前端的直播信息
+type LiveInfo struct {
+	// 用户 ID。如 "97504125417"
+	ID string `json:"id"`
+	// sec id。如 "MS4wLjABAAAA_Wt4d-nxxxgEHzedsCrcK1f0kIXSlPZuI"
+	SecUid string `json:"sec_uid"`
+	// 头像
+	Avatar string `json:"avatar"`
+	// 主播名/房间名
+	Name string `json:"name"`
+	// 是否在播
+	Online bool `json:"online"`
+	// 直播间的标题
+	Title string `json:"title"`
+	// 流地址
+	StreamUrl string `json:"streamUrl"`
+}
+
+// RoomStatus 从 Web 直播间获取直播流
+//
+// 可以获取到直播流地址(flv 或 .m3u8)
+// 但当主播不开播时，难以获取直播间 web_rid，无法添加到chromium扩展中的关注
+type RoomStatus struct {
 	App struct {
 		InitialState struct {
 			RoomStore struct {
@@ -38,7 +62,7 @@ type LiveRoomStatus struct {
 					} `json:"anchor"`
 					Room struct {
 						IDStr string `json:"id_str"`
-						// 状态为2，表示在播
+						// 状态为 2，表示在播
 						Status int `json:"status"`
 						// 状态的字符串形式，如"2"
 						StatusStr string `json:"status_str"`
@@ -99,10 +123,12 @@ type LiveRoomStatus struct {
 	} `json:"app"`
 }
 
-// HomeInfo 从Web用户主页得到直播间的状态。可以获取用户信息和直播间的web_rid
-// 注意`Data`对应的JSON键名会改变，如"31"、"36"。需要程序自动识别，详见代码
+// HomeInfo 从 Web 用户主页得到用户信息
+//
+// 注意：当用户没有在播时，`roomId`、`roomData`信息都为空（此时当然 `web_rid` 也为空）
+// 注意：`Data`对应的JSON键名会改变，如"31"、"36"，需要程序自动识别，详见代码
 type HomeInfo struct {
-	HomeData `json:"36"`
+	HomeData
 }
 
 // HomeData 用户主页的JSON数据
