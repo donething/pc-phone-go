@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"pc-phone-go/comm"
 	"pc-phone-go/funcs"
 	"pc-phone-go/funcs/logger"
 	"pc-phone-go/funcs/mysse"
+	"pc-phone-go/handlers"
 	"pc-phone-go/icons"
 	"pc-phone-go/tools/lives"
 	"pc-phone-go/tools/ql"
@@ -18,11 +20,6 @@ import (
 	"pc-phone-go/tools/sites/javlib"
 	"runtime"
 	"time"
-)
-
-const (
-	// 服务端口
-	port = 8800
 )
 
 func init() {
@@ -51,13 +48,17 @@ func main() {
 	router := gin.Default()
 
 	// 显示 PC 端地址的二维码
-	router.GET("/", index)
+	router.GET("/", handlers.Index)
 
 	// 打开或显示本地文件
 	router.POST("/api/openfile", funcs.OpenLocal)
 
+	// 关闭 PC
+	router.POST("/api/shutdown", handlers.Shutdown)
 	// 剪贴板
-	router.POST("/api/clip", handerClip)
+	router.GET("/api/clip/get", handlers.GetClip)
+	router.POST("/api/clip/send", handlers.SendText)
+	router.POST("/api/files/send", handlers.SendFiles)
 
 	// qx
 	router.GET("/api/qx/parse_surge", qx.ParseSurge)
@@ -87,8 +88,8 @@ func main() {
 	// 重命名路径下的文件
 	router.POST("/api/fanhao/rename", javlib.RenameDir)
 
-	logger.Info.Printf("开始本地服务：http://127.0.0.1:%d\n", port)
-	logger.Error.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
+	logger.Info.Printf("开始本地服务：http://127.0.0.1:%d\n", comm.Port)
+	logger.Error.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", comm.Port), router))
 }
 
 // 显示systray托盘
