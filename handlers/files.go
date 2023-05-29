@@ -43,7 +43,7 @@ func SendFiles(c *gin.Context) {
 		logger.Error.Printf("%s 无法读取到文件，检查多部分表单中文件的 key 是否为 '%s'\n", tagSendFiles, keyFile)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 30100,
-			Msg:  fmt.Sprintf("%s 无法读取到文件，检查多部分表单中文件的 key 是否为 '%s'\n", tagSendFiles, keyFile),
+			Msg:  fmt.Sprintf("%s 无法读取到文件，检查多部分表单中文件的 key 是否为 '%s'", tagSendFiles, keyFile),
 			Data: nil,
 		})
 		return
