@@ -25,7 +25,7 @@ const (
 // GET /api/clip/get
 func GetClip(c *gin.Context) {
 	text, err := clipboard.ReadAll()
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "The operation completed successfully") {
 		logger.Error.Printf("%s 读取 PC 的剪贴板出错：%s\n", tagGetClip, err)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 20000,
