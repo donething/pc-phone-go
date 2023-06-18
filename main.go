@@ -50,9 +50,6 @@ func main() {
 	// 显示 PC 端地址的二维码
 	router.GET("/", handlers.Index)
 
-	// 打开或显示本地文件
-	router.POST("/api/openfile", funcs.OpenLocal)
-
 	// 关闭 PC
 	router.POST("/api/shutdown", handlers.Shutdown)
 
@@ -61,7 +58,10 @@ func main() {
 	router.POST("/api/clip/send", handlers.SendText)
 
 	// 文件
-	router.POST("/api/files/send", handlers.SendFiles)
+	// 发送文件到 PC
+	router.POST("/api/file/send", handlers.SendFiles)
+	// 打开或显示本地文件
+	router.POST("/api/file/open", funcs.OpenLocal)
 
 	// qx
 	router.GET("/api/qx/parse_surge", qx.ParseSurge)
