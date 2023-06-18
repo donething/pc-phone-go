@@ -55,9 +55,12 @@ func main() {
 
 	// 关闭 PC
 	router.POST("/api/shutdown", handlers.Shutdown)
+
 	// 剪贴板
 	router.GET("/api/clip/get", handlers.GetClip)
 	router.POST("/api/clip/send", handlers.SendText)
+
+	// 文件
 	router.POST("/api/files/send", handlers.SendFiles)
 
 	// qx
