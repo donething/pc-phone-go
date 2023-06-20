@@ -79,10 +79,10 @@ func SendText(c *gin.Context) {
 	urlReg := regexp.MustCompile(`^https?://\S+$`)
 	if urlReg.MatchString(strings.TrimSpace(text)) {
 		err = browser.OpenURL(strings.TrimSpace(text))
-		feedback = "收到网址，已用 PC 浏览器打开"
+		feedback = "PC 收到网址，已用浏览器打开"
 	} else {
 		err = clipboard.WriteAll(text)
-		feedback = "收到文本，已复制到 PC 剪贴板"
+		feedback = "PC 收到文本，已复制到剪贴板"
 	}
 
 	// 操作有错误
