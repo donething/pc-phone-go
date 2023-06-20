@@ -52,11 +52,11 @@ func Shutdown(c *gin.Context) {
 		args = []string{"-a"}
 		tips = "取消关闭 PC"
 	} else {
-		logger.Error.Printf("%s 未知的操作：'%s'\n", tagShutdown, form.Op)
+		msg := fmt.Sprintf("%s 未知的操作：'%s'", tagShutdown, form.Op)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 10100,
-			Msg:  fmt.Sprintf("%s 未知的操作：'%s'\n", tagShutdown, form.Op),
-			Data: nil,
+			Msg:  msg,
 		})
 		return
 	}
@@ -64,20 +64,20 @@ func Shutdown(c *gin.Context) {
 	cmd := exec.Command("shutdown", args...)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
-		logger.Error.Printf("%s 执行/取消 关机命令时出错：%s\n", tagShutdown, err)
+		msg := fmt.Sprintf("%s 执行/取消 关机命令时出错：%s", tagShutdown, err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 10200,
-			Msg:  fmt.Sprintf("%s 执行/取消 关机命令时出错", tagShutdown),
-			Data: err.Error(),
+			Msg:  fmt.Sprintf(msg),
 		})
 		return
 	}
 
 	// 正确执行
-	logger.Info.Printf("%s 已执行命令：%s\n", tagShutdown, tips)
+	msg := fmt.Sprintf("%s 已执行命令：%s", tagShutdown, tips)
+	logger.Info.Println(msg)
 	c.JSON(http.StatusOK, entity.Rest{
 		Code: 0,
-		Msg:  fmt.Sprintf("%s 已执行命令：%s", tagShutdown, tips),
-		Data: nil,
+		Msg:  msg,
 	})
 }

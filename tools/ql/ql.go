@@ -34,10 +34,11 @@ func SetEnv(c *gin.Context) {
 	// 获取 Token
 	headers, err := getTokenHeaders()
 	if err != nil {
-		logger.Error.Printf("获取 青龙 Token Headers 出错：%s\n", err)
+		msg := fmt.Sprintf("获取 青龙 Token Headers 出错：%s", err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 6000,
-			Msg:  "获取 青龙 Token Headers 出错",
+			Msg:  msg,
 		})
 		return
 	}
@@ -45,10 +46,11 @@ func SetEnv(c *gin.Context) {
 	var setEnvReq SetEnvReq
 	err = c.BindJSON(&setEnvReq)
 	if err != nil {
-		logger.Error.Printf("解析设置环境变量的请求内容时出错：%s\n", err)
+		msg := fmt.Sprintf("解析设置环境变量的请求内容时出错：%s", err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
-			Code: 6000,
-			Msg:  "解析设置环境变量的请求内容时出错",
+			Code: 6010,
+			Msg:  msg,
 		})
 		return
 	}
@@ -70,10 +72,11 @@ func SetEnv(c *gin.Context) {
 	// 发送请求
 	putData, err := json.Marshal(data)
 	if err != nil {
-		logger.Error.Printf("序列号设置环境变量的内容时出错：%s\n", err)
+		msg := fmt.Sprintf("序列号设置环境变量的内容时出错：%s", err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
-			Code: 6000,
-			Msg:  "序列号设置环境变量的内容时出错",
+			Code: 6020,
+			Msg:  msg,
 		})
 		return
 	}
@@ -81,10 +84,11 @@ func SetEnv(c *gin.Context) {
 	logger.Info.Printf("设置环境变量的请求：method: '%s'，body: '%s'\n", method, string(putData))
 	req, err := http.NewRequest(method, fmt.Sprintf("%s/open/envs", host), bytes.NewReader(putData))
 	if err != nil {
-		logger.Error.Printf("创建设置环境变量的请求时出错：%s\n", err)
+		msg := fmt.Sprintf("创建设置环境变量的请求时出错：%s", err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 6000,
-			Msg:  "创建设置环境变量的请求时出错",
+			Msg:  msg,
 		})
 		return
 	}
@@ -93,10 +97,11 @@ func SetEnv(c *gin.Context) {
 	headers["Content-Type"] = "application/json"
 	resp, err := client.Exec(req, headers)
 	if err != nil {
-		logger.Error.Printf("发送设置环境变量的请求时出错：%s\n", err)
+		msg := fmt.Sprintf("发送设置环境变量的请求时出错：%s", err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
-			Code: 6000,
-			Msg:  "发送设置环境变量的请求时出错",
+			Code: 6030,
+			Msg:  msg,
 		})
 		return
 	}
@@ -104,10 +109,11 @@ func SetEnv(c *gin.Context) {
 
 	bs, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Error.Printf("读取设置环境变量的响应时出错：%s\n", err)
+		msg := fmt.Sprintf("读取设置环境变量的响应时出错：%s", err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
-			Code: 6000,
-			Msg:  "读取设置环境变量的响应时出错",
+			Code: 6040,
+			Msg:  msg,
 		})
 		return
 	}
@@ -116,28 +122,31 @@ func SetEnv(c *gin.Context) {
 	var basicResp BasicResp
 	err = json.Unmarshal(bs, &basicResp)
 	if err != nil {
-		logger.Error.Printf("解析设置环境变量的响应时出错：%s ==> '%s'\n", err, string(bs))
+		msg := fmt.Sprintf("解析设置环境变量的响应时出错：%s", err)
+		logger.Error.Println(msg, "：\n", string(bs))
 		c.JSON(http.StatusOK, entity.Rest{
-			Code: 6000,
-			Msg:  "解析设置环境变量的响应时出错",
+			Code: 6050,
+			Msg:  msg,
 		})
 		return
 	}
 
 	// 没有获取到正确内容
 	if basicResp.Code != 200 {
-		logger.Error.Printf("设置环境变量时出错：%s\n", string(bs))
+		msg := fmt.Sprintf("设置环境变量时出错：%s", string(bs))
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
-			Code: 6100,
-			Msg:  "设置环境变量时出错",
+			Code: 6060,
+			Msg:  msg,
 		})
 		return
 	}
 
-	logger.Info.Printf("已设置环境变量：%s\n", setEnvReq.Name)
+	msg := fmt.Sprintf("已设置环境变量：%s", setEnvReq.Name)
+	logger.Info.Println(msg)
 	c.JSON(http.StatusOK, entity.Rest{
 		Code: 0,
-		Msg:  "已设置环境变量",
+		Msg:  msg,
 	})
 }
 
@@ -178,18 +187,20 @@ func getEnvs(key string, headers map[string]string) ([]Env, error) {
 func StartCommCrons(c *gin.Context) {
 	num, err := StartCommCronsCall()
 	if err != nil {
-		logger.Error.Printf("执行定时任务时出错：%s\n", err)
+		msg := fmt.Sprintf("执行定时任务时出错：%s", err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 6100,
-			Msg:  fmt.Sprintf("执行定时任务时出错：%s", err),
+			Msg:  msg,
 		})
 		return
 	}
 
-	logger.Info.Printf("已发送执行定时任务的请求，共计 %d 个任务\n", num)
+	msg := fmt.Sprintf("已发送执行定时任务的请求，共计 %d 个任务", num)
+	logger.Info.Println(msg)
 	c.JSON(http.StatusOK, entity.Rest{
 		Code: 0,
-		Msg:  fmt.Sprintf("已发送执行定时任务的请求，共计 %d 个任务\n", num),
+		Msg:  msg,
 	})
 }
 

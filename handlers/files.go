@@ -28,11 +28,11 @@ func SendFiles(c *gin.Context) {
 
 	form, err := c.MultipartForm()
 	if err != nil {
-		logger.Error.Printf("%s 解析多部分表单出错：%s\n", tagSendFiles, err)
+		msg := fmt.Sprintf("%s 解析多部分表单出错：%s", tagSendFiles, err)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 30000,
-			Msg:  fmt.Sprintf("%s 解析多部分表单出错", tagSendFiles),
-			Data: err.Error(),
+			Msg:  msg,
 		})
 		return
 	}
@@ -40,32 +40,34 @@ func SendFiles(c *gin.Context) {
 	// 读取文件，支持读取多个文件
 	files := form.File[keyFile]
 	if len(files) == 0 {
-		logger.Error.Printf("%s 无法读取到文件，检查多部分表单中文件的 key 是否为 '%s'\n", tagSendFiles, keyFile)
+		msg := fmt.Sprintf("%s 无法读取到文件，检查多部分表单中文件的 key 是否为 '%s'", tagSendFiles, keyFile)
+		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 30100,
-			Msg:  fmt.Sprintf("%s 无法读取到文件，检查多部分表单中文件的 key 是否为 '%s'", tagSendFiles, keyFile),
-			Data: nil,
+			Msg:  msg,
 		})
 		return
 	}
 
 	// 保存文件
+	var errCount = 0
 	for _, file := range files {
 		filename := genFilename(file.Filename)
 		path, _ := filepath.Abs(filepath.Join(funcs.FileDir(), dofile.ValidFileName(filename, "_")))
 
 		err = c.SaveUploadedFile(file, path)
 		if err != nil {
-			saveResult[file.Filename] = fmt.Sprintf("保存出错：%s", err)
+			errCount++
+			saveResult[file.Filename] = fmt.Sprintf("保存到文件出错：%s", err)
 		} else {
-			saveResult[file.Filename] = fmt.Sprintf("保存成功：%s", path)
+			saveResult[file.Filename] = fmt.Sprintf("保存到文件成功：%s", path)
 		}
 	}
 
 	// 返回结果以便显示
 	c.JSON(http.StatusOK, entity.Rest{
 		Code: 0,
-		Msg:  "保存文件的结果",
+		Msg:  fmt.Sprintf("共发送 %d 个文件，失败 %d 个", len(saveResult), errCount),
 		Data: saveResult,
 	})
 }

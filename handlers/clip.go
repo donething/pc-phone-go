@@ -25,12 +25,24 @@ const (
 // GET /api/clip/get
 func GetClip(c *gin.Context) {
 	text, err := clipboard.ReadAll()
+
+	// 排除误报的错误
 	if err != nil && !strings.Contains(err.Error(), "The operation completed successfully") {
+		// 剪贴板为空
+		if strings.Contains(err.Error(), "Element not found") {
+			logger.Error.Printf("%s PC 剪贴板为空：%s\n", tagGetClip, err)
+			c.JSON(http.StatusOK, entity.Rest{
+				Code: 20000,
+				Msg:  fmt.Sprintf("%s PC 剪贴板为空：%s", tagGetClip, err),
+			})
+			return
+		}
+
+		// 其它为真正的错误
 		logger.Error.Printf("%s 读取 PC 的剪贴板出错：%s\n", tagGetClip, err)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 20000,
-			Msg:  fmt.Sprintf("%s 读取 PC 的剪贴板出错", tagGetClip),
-			Data: err.Error(),
+			Msg:  fmt.Sprintf("%s ：%s", tagGetClip, err),
 		})
 		return
 	}
@@ -66,7 +78,6 @@ func SendText(c *gin.Context) {
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 20100,
 			Msg:  fmt.Sprintf("%s 文本数据为空", tagSendText),
-			Data: nil,
 		})
 		return
 	}
@@ -90,8 +101,7 @@ func SendText(c *gin.Context) {
 		logger.Error.Printf("%s 执行操作时出错：%s\n", tagSendText, err)
 		c.JSON(http.StatusOK, entity.Rest{
 			Code: 20200,
-			Msg:  fmt.Sprintf("%s 执行操作时出错", tagSendText),
-			Data: err.Error(),
+			Msg:  fmt.Sprintf("%s 执行操作时出错：%s", tagSendText, err),
 		})
 		return
 	}
@@ -100,13 +110,12 @@ func SendText(c *gin.Context) {
 	c.JSON(http.StatusOK, entity.Rest{
 		Code: 0,
 		Msg:  feedback,
-		Data: nil,
 	})
 }
 
 // 根据当前时间、请求头中的文件名 生成保存文件的文件名
 func genFilename(name string) string {
-	filename := fmt.Sprintf("PPC-%d", time.Now().Unix())
+	filename := fmt.Sprintf("PP-%d", time.Now().Unix())
 	if strings.TrimSpace(name) != "" {
 		filename += "_" + name
 	}

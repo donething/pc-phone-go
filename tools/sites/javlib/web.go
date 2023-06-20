@@ -46,16 +46,16 @@ func ExistFanhaoFile(c *gin.Context) {
 	var fanhaos []string
 	err := c.Bind(&fanhaos)
 	if err != nil {
-		text := fmt.Sprintf("绑定字幕的番号参数出错：%s", err)
-		logger.Error.Println(text)
-		c.JSON(http.StatusOK, entity.Rest{Code: 3000, Msg: text, Data: false})
+		msg := fmt.Sprintf("绑定字幕的番号参数出错：%s", err)
+		logger.Error.Println(msg)
+		c.JSON(http.StatusOK, entity.Rest{Code: 3000, Msg: msg, Data: false})
 		return
 	}
 	paths, err := SeekFile(conf.Conf.Javlib.FanDirs, fanhaos)
 	if err != nil {
-		logtext := fmt.Sprintf("查找番号的本地文件时出错：%s\n", err)
-		logger.Error.Printf(logtext)
-		c.JSON(http.StatusOK, entity.Rest{Code: 3010, Msg: logtext, Data: false})
+		msg := fmt.Sprintf("查找番号的本地文件时出错：%s\n", err)
+		logger.Error.Printf(msg)
+		c.JSON(http.StatusOK, entity.Rest{Code: 3010, Msg: msg, Data: false})
 		return
 	}
 	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "查找番号的结果", Data: paths})
@@ -74,9 +74,9 @@ func ExistSubtitle(c *gin.Context) {
 	}
 	err := c.Bind(&fanhao)
 	if err != nil {
-		text := fmt.Sprintf("绑定字幕的番号参数出错：%s", err)
-		logger.Error.Println(text)
-		c.JSON(http.StatusOK, entity.Rest{Code: 3020, Msg: text, Data: false})
+		msg := fmt.Sprintf("绑定字幕的番号参数出错：%s", err)
+		logger.Error.Println(msg)
+		c.JSON(http.StatusOK, entity.Rest{Code: 3020, Msg: msg, Data: false})
 		return
 	}
 
@@ -86,9 +86,9 @@ func ExistSubtitle(c *gin.Context) {
 	}
 	paths, err := MatchSubtitle(fanhao.Fanhao)
 	if err != nil {
-		logtext := fmt.Sprintf("查找番号(%s)本地的字幕文件时出错：%s\n", fanhao, err)
-		logger.Error.Printf(logtext)
-		c.JSON(http.StatusOK, entity.Rest{Code: 3030, Msg: logtext, Data: false})
+		msg := fmt.Sprintf("查找番号(%s)本地的字幕文件时出错：%s", fanhao, err)
+		logger.Error.Println(msg)
+		c.JSON(http.StatusOK, entity.Rest{Code: 3030, Msg: msg, Data: false})
 		return
 	}
 	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "字幕的路径", Data: paths})
@@ -107,9 +107,9 @@ func RenameDir(c *gin.Context) {
 	var params ParamsRename
 	err := c.Bind(&params)
 	if err != nil {
-		text := fmt.Sprintf("重命名提取路径参数时出错：%s", err)
-		logger.Error.Println(text)
-		c.JSON(http.StatusOK, entity.Rest{Code: 3050, Msg: text, Data: nil})
+		msg := fmt.Sprintf("重命名提取路径参数时出错：%s", err)
+		logger.Error.Println(msg)
+		c.JSON(http.StatusOK, entity.Rest{Code: 3050, Msg: msg, Data: nil})
 		return
 	}
 	// 重命名并实时反馈消息
@@ -118,8 +118,9 @@ func RenameDir(c *gin.Context) {
 	eventCh := mysse.EventsChs[params.Hash].EventCh
 	mysse.MuChs.Unlock()
 	if eventCh == nil {
-		logger.Info.Printf("重命名的消息通道为空，终止重命名\n")
-		c.JSON(http.StatusOK, entity.Rest{Code: 3060, Msg: "重命名的消息通道为空，终止重命名", Data: nil})
+		msg := fmt.Sprintf("重命名的 channel 为空，终止重命名")
+		logger.Info.Println(msg)
+		c.JSON(http.StatusOK, entity.Rest{Code: 3060, Msg: msg, Data: nil})
 		return
 	}
 	// 重命名
@@ -127,6 +128,7 @@ func RenameDir(c *gin.Context) {
 	// 慎重关闭，会导致该 SSE 请求完成然后退出，客户端疯狂重连
 	// 等待重命名操作完成，关闭消息通道
 	// close(eventCh)
-	logger.Info.Printf("已完成重命名操作\n")
-	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "已完成重命名操作", Data: nil})
+	msg := "已完成重命名操作"
+	logger.Info.Println(msg)
+	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: msg, Data: nil})
 }
