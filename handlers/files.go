@@ -52,15 +52,16 @@ func SendFiles(c *gin.Context) {
 	// 保存文件
 	var errCount = 0
 	for _, file := range files {
-		filename := genFilename(file.Filename)
-		path, _ := filepath.Abs(filepath.Join(funcs.FileDir(), dofile.ValidFileName(filename, "_")))
+		filenameSaved := genFilename(file.Filename)
+		path, _ := filepath.Abs(filepath.Join(funcs.FileDir(), dofile.ValidFileName(filenameSaved, "_")))
 
 		err = c.SaveUploadedFile(file, path)
+		key := fmt.Sprintf("'%s'", file.Filename)
 		if err != nil {
 			errCount++
-			saveResult[file.Filename] = fmt.Sprintf("保存到文件出错：%s", err)
+			saveResult[key] = fmt.Sprintf("保存出错：%s", err)
 		} else {
-			saveResult[file.Filename] = fmt.Sprintf("保存到文件成功：%s", path)
+			saveResult[key] = fmt.Sprintf("保存到：'%s'", path)
 		}
 	}
 
