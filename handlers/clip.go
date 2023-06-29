@@ -30,7 +30,7 @@ func GetClip(c *gin.Context) {
 	if err != nil && !strings.Contains(err.Error(), "The operation completed successfully") {
 		// 剪贴板为空
 		if strings.Contains(err.Error(), "Element not found") {
-			logger.Error.Printf("%s PC 剪贴板为空：%s\n", tagGetClip, err)
+			logger.Warn.Printf("%s PC 剪贴板为空：%s\n", tagGetClip, err)
 			c.JSON(http.StatusOK, entity.Rest{
 				Code: 20000,
 				Msg:  fmt.Sprintf("%s PC 剪贴板为空：%s", tagGetClip, err),
@@ -41,7 +41,7 @@ func GetClip(c *gin.Context) {
 		// 其它为真正的错误
 		logger.Error.Printf("%s 读取 PC 的剪贴板出错：%s\n", tagGetClip, err)
 		c.JSON(http.StatusOK, entity.Rest{
-			Code: 20000,
+			Code: 20010,
 			Msg:  fmt.Sprintf("%s ：%s", tagGetClip, err),
 		})
 		return
