@@ -3,9 +3,11 @@ package handlers
 import (
 	"fmt"
 	"github.com/atotto/clipboard"
+	"github.com/donething/utils-go/dofile"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/browser"
 	"net/http"
+	"path"
 	"pc-phone-go/entity"
 	"pc-phone-go/funcs/logger"
 	"regexp"
@@ -22,8 +24,11 @@ const (
 
 // GetClip 手机读取 PC 的剪贴板
 //
+// 当剪贴板中的文本是有效路径时，手机端将获取到该文件
+//
 // GET /api/clip/get
 func GetClip(c *gin.Context) {
+	// 读取剪贴板
 	text, err := clipboard.ReadAll()
 
 	// 排除误报的错误
@@ -40,18 +45,29 @@ func GetClip(c *gin.Context) {
 
 		// 其它为真正的错误
 		logger.Error.Printf("%s 读取 PC 的剪贴板出错：%s\n", tagGetClip, err)
-		c.JSON(http.StatusOK, entity.Rest{
-			Code: 20010,
-			Msg:  fmt.Sprintf("%s ：%s", tagGetClip, err),
-		})
+		c.JSON(http.StatusOK, entity.Rest{Code: 20010, Msg: fmt.Sprintf("%s ：%s", tagGetClip, err)})
 		return
 	}
 
-	c.JSON(http.StatusOK, entity.Rest{
-		Code: 0,
-		Msg:  "PC 的剪贴板的数据",
-		Data: text,
-	})
+	// 分析剪贴板的文本是否为文件路径
+	// 判断出错或文件不存在，当文本发送
+	exist, err := dofile.Exists(text)
+	if err != nil || !exist {
+		logger.Info.Printf("%s 作为文本发送：%s\n", tagGetClip, text)
+		c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: text})
+		return
+	}
+
+	// 当文件发送
+	filePath := text
+	logger.Info.Printf("%s 作为文件发送：%s\n", tagGetClip, filePath)
+
+	// 获取文件的名称
+	fileName := path.Base(filePath)
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+
+	c.File(filePath)
 }
 
 // SendText 手机发送数据到 PC 的剪贴板
