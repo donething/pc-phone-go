@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/browser"
 	"net/http"
-	"path"
+	"path/filepath"
 	"pc-phone-go/entity"
 	"pc-phone-go/funcs/logger"
 	"regexp"
@@ -51,7 +51,8 @@ func GetClip(c *gin.Context) {
 
 	// 分析剪贴板的文本是否为文件路径
 	// 判断出错或文件不存在，当文本发送
-	exist, err := dofile.Exists(text)
+	text2Path := strings.Trim(text, "\"")
+	exist, err := dofile.Exists(text2Path)
 	if err != nil || !exist {
 		logger.Info.Printf("%s 作为文本发送：%s\n", tagGetClip, text)
 		c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: text})
@@ -59,15 +60,15 @@ func GetClip(c *gin.Context) {
 	}
 
 	// 当文件发送
-	filePath := text
-	logger.Info.Printf("%s 作为文件发送：%s\n", tagGetClip, filePath)
+	logger.Info.Printf("%s 作为文件发送：%s\n", tagGetClip, text2Path)
 
 	// 获取文件的名称
-	fileName := path.Base(filePath)
+	// 不要用 path.Base()，path 包不跨平台
+	fileName := filepath.Base(text2Path)
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+fileName)
 
-	c.File(filePath)
+	c.File(text2Path)
 }
 
 // SendText 手机发送数据到 PC 的剪贴板
