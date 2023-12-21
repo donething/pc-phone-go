@@ -18,7 +18,7 @@ type OpForm[T any] struct {
 // ParseForm 解析 JSON 表单参数
 func ParseForm[T any](c *gin.Context, tag string) (*OpForm[T], *Rest) {
 	var form OpForm[T]
-	err := c.Bind(&form)
+	err := c.BindJSON(&form)
 	if err != nil {
 		logger.Error.Printf("%s 解析 JSON 表单出错：%s\n", tag, err)
 		return nil, &Rest{
