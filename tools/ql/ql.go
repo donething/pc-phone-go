@@ -153,7 +153,7 @@ func SetEnv(c *gin.Context) {
 // 获取指定可以的环境变量，结果可能有多个
 // key 为空时，获取所有环境变量
 func getEnvs(key string, headers map[string]string) ([]Env, error) {
-	bs, err := client.Get(fmt.Sprintf("%s/open/envs", host), headers)
+	bs, err := client.GetBytes(fmt.Sprintf("%s/open/envs", host), headers)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func StartCommCronsCall() (int, error) {
 
 // 获取所有定时任务
 func getAllCrons(headers map[string]string) ([]Cron, error) {
-	bs, err := client.Get(fmt.Sprintf("%s/open/crons", host), headers)
+	bs, err := client.GetBytes(fmt.Sprintf("%s/open/crons", host), headers)
 	if err != nil {
 		return nil, fmt.Errorf("网络错误：%w", err)
 	}
@@ -301,7 +301,7 @@ func getAllCrons(headers map[string]string) ([]Cron, error) {
 // 获取 token
 func getTokenHeaders() (map[string]string, error) {
 	// 发送请求
-	bs, err := client.Get(fmt.Sprintf("%s/open/auth/token?client_id=%s&client_secret=%s",
+	bs, err := client.GetBytes(fmt.Sprintf("%s/open/auth/token?client_id=%s&client_secret=%s",
 		host, conf.Conf.QLPanel.ClientID, conf.Conf.QLPanel.ClientSecret), nil)
 	if err != nil {
 		return nil, fmt.Errorf("网络错误：%w", err)

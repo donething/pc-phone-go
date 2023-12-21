@@ -14,5 +14,5 @@ var (
 const LogName = "run.log"
 
 func init() {
-	Info, Warn, Error = dolog.InitLog(LogName, dolog.DefaultFormat)
+	Info, Warn, Error = dolog.InitLog(0)
 }

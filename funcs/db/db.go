@@ -39,6 +39,7 @@ func init() {
 
 	// 打开数据库
 	DB, err = dobolt.Open(dbPath, nil, nil)
+	dolog.CkPanic(err)
 
 	err = DB.Create(BkSubtitle)
 	dolog.CkPanic(err)
