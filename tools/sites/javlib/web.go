@@ -84,14 +84,15 @@ func ExistSubtitle(c *gin.Context) {
 		c.JSON(http.StatusOK, entity.Rest{Code: 3021, Msg: "关键字为空", Data: false})
 		return
 	}
-	paths, err := MatchSubtitle(fanhao.Fanhao)
+	path, err := MatchSubtitle(fanhao.Fanhao)
 	if err != nil {
 		msg := fmt.Sprintf("查找番号(%s)本地的字幕文件时出错：%s", fanhao, err)
 		logger.Error.Println(msg)
 		c.JSON(http.StatusOK, entity.Rest{Code: 3030, Msg: msg, Data: false})
 		return
 	}
-	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "字幕的路径", Data: paths})
+
+	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "字幕的路径", Data: path})
 }
 
 // RenameDir 重命名文件夹内的文件
