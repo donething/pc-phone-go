@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"github.com/donething/utils-go/dofile"
 	"github.com/gin-gonic/gin"
+	"github.com/h2non/filetype"
+	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"pc-phone-go/entity"
 	"pc-phone-go/funcs"
 	"pc-phone-go/funcs/logger"
+	"strings"
 )
 
 // SendFiles 手机发送文件到 PC
@@ -53,15 +57,25 @@ func SendFiles(c *gin.Context) {
 	var errCount = 0
 	for _, file := range files {
 		filenameSaved := genFilename(file.Filename)
-		path, _ := filepath.Abs(filepath.Join(funcs.FileDir(), dofile.ValidFileName(filenameSaved, "_")))
+		filenameSaved = dofile.ValidFileName(filenameSaved, "_")
+		path, _ := filepath.Abs(filepath.Join(funcs.FileDir(), filenameSaved))
 
+		key := fmt.Sprintf("'%s'", filenameSaved)
 		err = c.SaveUploadedFile(file, path)
-		key := fmt.Sprintf("'%s'", file.Filename)
 		if err != nil {
 			errCount++
 			saveResult[key] = fmt.Sprintf("保存出错：%s", err)
-		} else {
-			saveResult[key] = fmt.Sprintf("保存到：'%s'", path)
+		}
+		saveResult[key] = fmt.Sprintf("已保存到: '%s'", path)
+
+		// 如果文件没有格式后缀，就尽量获取后增加
+		if strings.Contains(filenameSaved, ".") {
+			continue
+		}
+		// 增加格式
+		err = appendExt(path)
+		if err != nil {
+			logger.Error.Printf("增加格式出错'%s'：%s\n", path, err)
 		}
 	}
 
@@ -71,4 +85,33 @@ func SendFiles(c *gin.Context) {
 		Msg:  fmt.Sprintf("共发送 %d 个文件，失败 %d 个", len(saveResult), errCount),
 		Data: saveResult,
 	})
+}
+
+// 增加格式
+func appendExt(path string) error {
+	// 读取文件前16字节，分析文件类型
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	buff := make([]byte, 16)
+	_, err = io.ReadFull(f, buff)
+	if err != nil {
+		return err
+	}
+
+	err = f.Close()
+	if err != nil {
+		return err
+	}
+
+	// 分析文件类型
+	kind, err := filetype.Match(buff)
+	if err != nil {
+		return err
+	}
+
+	// 重命名
+	return os.Rename(path, fmt.Sprintf("%s.%s", path, kind.Extension))
 }
