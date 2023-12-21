@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/donething/utils-go/dofile"
+	"github.com/donething/utils-go/doint"
 	"github.com/getlantern/systray"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"os/exec"
 	"pc-phone-go/comm"
 	"pc-phone-go/funcs"
+	"pc-phone-go/funcs/db"
 	"pc-phone-go/funcs/logger"
 	"pc-phone-go/funcs/mysse"
 	"pc-phone-go/handlers"
@@ -23,6 +25,15 @@ import (
 )
 
 func init() {
+	doint.Init(func() {
+		sqlDB, err := db.DB.DB()
+		if err != nil {
+			logger.Error.Printf("获取数据库实例时出错：%s\n", err)
+		} else {
+			sqlDB.Close()
+		}
+	})
+
 	// go func() {
 	// 	// 在本应用运行后需等一段时间，等 Docker 启动目标容器后才执行脚本，用于电脑刚开机时
 	// 	t := time.NewTimer(3 * time.Minute)
