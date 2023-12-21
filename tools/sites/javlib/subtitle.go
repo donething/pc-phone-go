@@ -12,7 +12,6 @@ func MatchSubtitle(fanhao string) (string, error) {
 	// 先转为大写的番号
 	fh := strings.ToUpper(strings.TrimSpace(fanhao))
 
-	// 未找到时，模糊查找
 	var subtitle db.Subtitle
 	if err := db.DB.Where("code LIKE ?", "%"+fh+"%").First(&subtitle).Error; err != nil {
 		return "", err
