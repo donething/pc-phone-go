@@ -87,6 +87,91 @@ func SendFiles(c *gin.Context) {
 	})
 }
 
+// DownloadFile 手机获取 PC 的文件
+//
+// GET /api/file/download
+//
+// 查询字符串参数 path 需要传递完整路径
+func DownloadFile(c *gin.Context) {
+	path := c.Query("path")
+	state, err := os.Stat(path)
+	if err != nil || os.IsNotExist(err) {
+		logger.Info.Printf("%s 文件不存在或判断出现错误 '%s'。'err'为'%v'\n", tagGetFile, err, path)
+		c.JSON(http.StatusOK, entity.Rest{Code: 30200, Msg: "文件不存在或判断出现错误"})
+		return
+	}
+
+	if state.IsDir() {
+		logger.Info.Printf("%s 路径指向为目录 '%s'\n", tagGetFile, path)
+		c.JSON(http.StatusOK, entity.Rest{Code: 30210, Msg: "路径指向为目录"})
+		return
+	}
+
+	// 获取文件的名称
+	// 不要用 path.Base()，path 包不跨平台
+	fileName := filepath.Base(path)
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+
+	c.File(path)
+}
+
+// ListPath 返回指定路径目录下的文件信息
+//
+// GET /api/file/list
+//
+// 查询字符串参数 path 需要传递完整路径
+//
+// 返回 Rest<[]FileInfo>
+func ListPath(c *gin.Context) {
+	path := c.Query("path")
+	state, err := os.Stat(path)
+	if err != nil || os.IsNotExist(err) {
+		logger.Info.Printf("%s 文件不存在或判断出现错误 '%s'。'err'为'%v'\n", taglistPath, err, path)
+		c.JSON(http.StatusOK, entity.Rest{Code: 30300, Msg: "文件不存在或判断出现错误"})
+		return
+	}
+
+	if !state.IsDir() {
+		logger.Info.Printf("%s 路径指向为文件 '%s'\n", taglistPath, path)
+		c.JSON(http.StatusOK, entity.Rest{Code: 30310, Msg: "路径指向为文件"})
+		return
+	}
+
+	// 读取目录
+	files, err := os.ReadDir(path)
+	if err != nil {
+		logger.Info.Printf("%s 读取目录'%s'出错：'%s'\n", taglistPath, path, err)
+		c.JSON(http.StatusOK, entity.Rest{Code: 30320, Msg: "读取目录出错"})
+		return
+	}
+
+	// 读取目录下所有子文件的信息
+	payload := make([]entity.FileInfo, 0, len(files))
+	for _, file := range files {
+		info, err := file.Info()
+		if err != nil {
+			logger.Info.Printf("%s 获取文件信息出错 '%s'\n", taglistPath, err)
+			c.JSON(http.StatusOK, entity.Rest{Code: 30330, Msg: "获取文件信息出错"})
+			return
+		}
+
+		fileInfo := entity.FileInfo{
+			Path:    filepath.Join(path, file.Name()),
+			Name:    info.Name(),
+			IsDir:   info.IsDir(),
+			Size:    info.Size(),
+			ModTime: info.ModTime().UnixMilli(),
+		}
+
+		payload = append(payload, fileInfo)
+	}
+
+	// 返回
+	logger.Info.Printf("%s 已读取目录下子文件的信息'%s'\n", taglistPath, path)
+	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "目录下子文件的信息", Data: payload})
+}
+
 // 增加格式
 func appendExt(path string) error {
 	// 读取文件前16字节，分析文件类型

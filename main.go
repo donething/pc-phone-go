@@ -71,6 +71,11 @@ func main() {
 	// 文件
 	// 发送文件到 PC
 	router.POST("/api/file/send", handlers.SendFiles)
+	// 手机获取 PC 指定目录下的文件信息
+	router.GET("/api/file/list", handlers.ListPath)
+	// 手机获取 PC 的文件
+	router.GET("/api/file/download", handlers.DownloadFile)
+
 	// 打开或显示本地文件
 	router.POST("/api/file/open", funcs.OpenLocal)
 

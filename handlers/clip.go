@@ -3,11 +3,10 @@ package handlers
 import (
 	"fmt"
 	"github.com/atotto/clipboard"
-	"github.com/donething/utils-go/dofile"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/browser"
 	"net/http"
-	"path/filepath"
+	"os"
 	"pc-phone-go/entity"
 	"pc-phone-go/funcs/logger"
 	"regexp"
@@ -20,13 +19,15 @@ const (
 	tagGetClip   = "[GetClip]"
 	tagSendText  = "[SendText]"
 	tagSendFiles = "[SendFiles]"
+	tagGetFile   = "[DownloadFile]"
+	taglistPath  = "[ListPath]"
 )
 
 // GetClip 手机读取 PC 的剪贴板
 //
-// 当剪贴板中的文本是有效路径时，手机端将获取到该文件
-//
 // GET /api/clip/get
+//
+// 客户端需分开调用获取文本、获取文件（目录）
 func GetClip(c *gin.Context) {
 	// 读取剪贴板
 	text, err := clipboard.ReadAll()
@@ -45,30 +46,32 @@ func GetClip(c *gin.Context) {
 
 		// 其它为真正的错误
 		logger.Error.Printf("%s 读取 PC 的剪贴板出错：%s\n", tagGetClip, err)
-		c.JSON(http.StatusOK, entity.Rest{Code: 20010, Msg: fmt.Sprintf("%s ：%s", tagGetClip, err)})
+		c.JSON(http.StatusOK, entity.Rest{Code: 20010, Msg: fmt.Sprintf("%s 读取 PC 的剪贴板出错：%s", tagGetClip, err)})
 		return
 	}
 
-	// 分析剪贴板的文本是否为文件路径
-	// 判断出错或文件不存在，当文本发送
+	// 分析剪贴板的文本为路径还是纯文本
 	text2Path := strings.Trim(text, "\"")
-	exist, err := dofile.Exists(text2Path)
-	if err != nil || !exist {
-		logger.Info.Printf("%s 作为文本发送：%s\n", tagGetClip, text)
-		c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: text})
+	// 发送文本：判断出错或文件不存在时
+	stat, err := os.Stat(text2Path)
+	if err != nil || os.IsNotExist(err) {
+		logger.Info.Printf("%s 作为文本发送'%s'。'err'为'%v'\n", tagGetClip, text, err)
+		c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "作为文本发送", Data: text})
 		return
 	}
 
-	// 当文件发送
-	logger.Info.Printf("%s 作为文件发送：%s\n", tagGetClip, text2Path)
+	// 否则，发送文件或文件夹
+	// 只发送文件的基础信息，客户端再判断为目录时，递归获取该目录的所有子文件（夹）
+	fileInfo := entity.FileInfo{
+		Path:    text2Path,
+		Name:    stat.Name(),
+		IsDir:   stat.IsDir(),
+		Size:    stat.Size(),
+		ModTime: stat.ModTime().UnixMilli(),
+	}
 
-	// 获取文件的名称
-	// 不要用 path.Base()，path 包不跨平台
-	fileName := filepath.Base(text2Path)
-	c.Header("Content-Type", "application/octet-stream")
-	c.Header("Content-Disposition", "attachment; filename="+fileName)
-
-	c.File(text2Path)
+	logger.Info.Printf("%s 作为文件（目录）发送 '%s'\n", tagGetClip, text2Path)
+	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "作为文件（目录）发送", Data: fileInfo})
 }
 
 // SendText 手机发送数据到 PC 的剪贴板
