@@ -1,6 +1,9 @@
 package conf
 
 type Config struct {
+	// 操作验证码
+	Auth string `json:"auth"`
+
 	Comm struct {
 		// 使用代理，为空表示不使用代理
 		Proxy string `json:"proxy"`

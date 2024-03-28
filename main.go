@@ -58,6 +58,9 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
+	// 验证权限
+	router.Use(UseAuth)
+
 	// 显示 PC 端地址的二维码
 	router.GET("/", handlers.Index)
 

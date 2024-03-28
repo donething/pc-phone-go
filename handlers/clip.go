@@ -55,8 +55,8 @@ func GetClip(c *gin.Context) {
 	// 发送文本：判断出错或文件不存在时
 	stat, err := os.Stat(text2Path)
 	if err != nil || os.IsNotExist(err) {
-		logger.Info.Printf("%s 作为文本发送'%s'。'err'为'%v'\n", tagGetClip, text, err)
-		c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "作为文本发送", Data: text})
+		logger.Info.Printf("%s 作为文本发送'%s'\n", tagGetClip, text)
+		c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "文本", Data: text})
 		return
 	}
 
@@ -71,7 +71,7 @@ func GetClip(c *gin.Context) {
 	}
 
 	logger.Info.Printf("%s 作为文件（目录）发送 '%s'\n", tagGetClip, text2Path)
-	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "作为文件（目录）发送", Data: fileInfo})
+	c.JSON(http.StatusOK, entity.Rest{Code: 0, Msg: "文件或目录", Data: fileInfo})
 }
 
 // SendText 手机发送数据到 PC 的剪贴板
